@@ -40,6 +40,14 @@
     </repositories>
 
     <dependencies>
+    
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -86,7 +94,7 @@
             <artifactId>spring-ws-support</artifactId>
             <version>1.5.1</version>
         </dependency>
-        
+
         <!--
             <dependency>
             <groupId>org.springframework</groupId>

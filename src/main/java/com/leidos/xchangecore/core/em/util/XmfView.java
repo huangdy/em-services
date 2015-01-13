@@ -3,6 +3,9 @@ package com.leidos.xchangecore.core.em.util;
 import java.io.OutputStream;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.web.servlet.View;
 
 import com.usersmarts.xmf2.MarshalContext;
@@ -17,7 +20,7 @@ import com.usersmarts.xmf2.MarshalContext;
 public class XmfView
 implements View {
 
-    private String contentType = "text/xml";
+    private final String contentType = "text/xml";
 
     private MarshalContext marshalContext;
 
@@ -25,6 +28,7 @@ implements View {
 
     }
 
+    @Override
     public String getContentType() {
 
         return contentType;
@@ -35,6 +39,7 @@ implements View {
         return marshalContext;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void render(Map model, HttpServletRequest request, HttpServletResponse response)
         throws Exception {
@@ -50,14 +55,6 @@ implements View {
             OutputStream out = response.getOutputStream();
             marshalContext.marshal(output, out);
         }
-    }
-
-    @Override
-    public void render(Map arg0, HttpServletRequest arg1, HttpServletResponse arg2)
-        throws Exception {
-
-        // TODO Auto-generated method stub
-
     }
 
     public void setContentType(String contentType) {

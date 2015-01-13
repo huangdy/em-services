@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -170,7 +173,7 @@ import com.usersmarts.xmf2.MarshalContext;
  *
  */
 public class SearchController
-extends AbstractConnectorController {
+    extends AbstractConnectorController {
 
     private ConfigurationService configurationService;
 
@@ -179,12 +182,12 @@ extends AbstractConnectorController {
 
     private QueryProcessor processor;
 
-    private QueryBuilder queryBuilder = new WorkProductQueryBuilder();
+    private final QueryBuilder queryBuilder = new WorkProductQueryBuilder();
 
     public SearchController() {
 
         String[] supportedMethods = {
-                                     "GET"
+            "GET"
         };
         setSupportedMethods(supportedMethods);
     }
@@ -242,7 +245,7 @@ extends AbstractConnectorController {
      * @throws ServletException
      */
     protected Results<Entity> search(HttpServletRequest request, Query query) throws IOException,
-    ServletException {
+        ServletException {
 
         Workspace workspace = (Workspace) getConnector(request);
         QueryProcessor processor = getProcessor();

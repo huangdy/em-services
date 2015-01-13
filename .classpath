@@ -9,6 +9,8 @@
   <classpathentry kind="var" path="M2_REPO/javax/transaction/jta/1.1/jta-1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-test/2.5.6/spring-test-2.5.6.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.4/junit-4.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/usersmarts/core/core-geo/1.2.6/core-geo-1.2.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/usersmarts/core/core-util/1.2.6/core-util-1.2.6.jar"/>
@@ -22,7 +24,6 @@
   <classpathentry kind="var" path="M2_REPO/com/usersmarts/core/core-xmf2/1.2.6/core-xmf2-1.2.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/stax/stax/1.2.0/stax-1.2.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/usersmarts/core/core-functor/1.2.6/core-functor-1.2.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/usersmarts/core/com.usersmarts.core.xmf/1.2.6/com.usersmarts.core.xmf-1.2.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/vividsolutions/jts/1.10/jts-1.10.jar"/>
