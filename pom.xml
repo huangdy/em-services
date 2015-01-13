@@ -31,16 +31,16 @@
     <name>Service jar for xChangeCore's EM</name>
     <version>${em.version}</version>
 
+
     <repositories>
         <repository>
             <id>xchangecore-mvn-repo</id>
-            <name>The global repository for the general purpose</name>
-            <url>https://github.com/huangdy/xchangecore-maven-repo/raw/master</url>
+            <url>https://github.com/huangdy/xchangecore-mvn-repo/raw/master</url>
         </repository>
     </repositories>
 
     <dependencies>
-    
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
