@@ -1,58 +1,21 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
-    <properties>
-        <spring.version>2.5.6</spring.version>
-        <spring.security.version>2.0.4</spring.security.version>
-        <spring.integrations.version>1.0.4.RELEASE</spring.integrations.version>
-        <gx.version>1.2.6</gx.version>
-        <xmlbeans-em.version>1.1.4</xmlbeans-em.version>
-        <xmlbeans-have.version>1.1.2</xmlbeans-have.version>
-        <xmlbeans-infrastructure.version>1.2.1</xmlbeans-infrastructure.version>
-        <xmlbeans-edxl_rm.version>1.0.0</xmlbeans-edxl_rm.version>
-        <infrastructure.version>1.2.0</infrastructure.version>
-        <infrastructure.xmpp.version>1.2.0</infrastructure.xmpp.version>
-        <em.version>1.2.0</em.version>
-        <em-war.version>1.1.1</em-war.version>
-        <github.global.server>github</github.global.server>
-        <!--
-            <my.hibernate.hbm2ddl.auto>update</my.hibernate.hbm2ddl.auto>
-            <my.hibernate.search.default.indexBase>target</my.hibernate.search.default.indexBase>
-            <my.annotation.driven></my.annotation.driven>
-        -->
-    </properties>
+    <parent>
+        <groupId>com.leidos.xchangecore.core</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
 
-    <groupId>com.leidos.xchangecore.core.em</groupId>
-    <artifactId>services</artifactId>
+    <artifactId>em-services</artifactId>
     <packaging>jar</packaging>
-    <name>Service jar for xChangeCore's EM</name>
-    <version>${em.version}</version>
-
-
-    <repositories>
-        <repository>
-            <id>xchangecore-mvn-repo</id>
-            <url>https://github.com/huangdy/xchangecore-mvn-repo/raw/master</url>
-        </repository>
-    </repositories>
+    <name>xChangeCore's em-services</name>
+    <version>${em-services.version}</version>
 
     <dependencies>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.4</version>
-        </dependency>
         <dependency>
             <groupId>com.usersmarts.core</groupId>
             <artifactId>core-geo</artifactId>
@@ -69,22 +32,22 @@
             <version>${gx.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.leidos.xchangecore.core.infrastructure</groupId>
-            <artifactId>services</artifactId>
-            <version>${infrastructure.version}</version>
+            <groupId>com.leidos.xchangecore.core</groupId>
+            <artifactId>infra-services</artifactId>
+            <version>${infra-services.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.leidos.xchangecore.core.infrastructure</groupId>
+            <groupId>com.leidos.xchangecore.core</groupId>
             <artifactId>xmlbeans-infrastructure</artifactId>
             <version>${xmlbeans-infrastructure.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.leidos.xchangecore.core.em</groupId>
+            <groupId>com.leidos.xchangecore.core</groupId>
             <artifactId>xmlbeans-edxl_rm</artifactId>
             <version>${xmlbeans-edxl_rm.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.leidos.xchangecore.core.em</groupId>
+            <groupId>com.leidos.xchangecore.core</groupId>
             <artifactId>xmlbeans-em</artifactId>
             <version>${xmlbeans-em.version}</version>
         </dependency>
@@ -110,35 +73,4 @@
         </dependency>
 
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.4.2</version>
-                <configuration>
-                    <!-- forkMode and MaxPermSize are set to overcome OutOfMemory exceptions -->
-                    <forkMode>once</forkMode>
-                    <argLine>-XX:MaxPermSize=128M</argLine>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
