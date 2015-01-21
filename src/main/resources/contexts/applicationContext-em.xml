@@ -71,19 +71,19 @@ http://www.springframework.org/schema/tx http://www.springframework.org/schema/t
     <!-- -->
     <!-- DAOs -->
     <!-- -->
-    <bean id="userInterestGroupDAO" class="com.saic.uicds.core.infrastructure.dao.hb.UserInterestGroupDAOHibernate" />
-    <bean id="interestGroupDAO" class="com.saic.uicds.core.infrastructure.dao.hb.InterestGroupDAOHibernate" />
-    <bean id="agreementDAO" class="com.saic.uicds.core.infrastructure.dao.hb.AgreementDAOHibernate" />
-    <bean id="incidentDAO" class="com.saic.uicds.core.em.dao.hb.IncidentDAOHibernate" />
-    <bean id="leitscIncidentDAO" class="com.saic.uicds.core.em.dao.hb.LEITSCIncidentDAOHibernate" />
-    <bean id="incidentCommandDAO" class="com.saic.uicds.core.em.dao.hb.IncidentCommandDAOHibernate" />
-    <bean id="organizationElementDAO" class="com.saic.uicds.core.em.dao.hb.OrganizationElementDAOHibernate" />
-    <bean id="organizationPositionDAO" class="com.saic.uicds.core.em.dao.hb.OrganizationPositionDAOHibernate" />
+    <bean id="userInterestGroupDAO" class="com.leidos.xchangecore.core.infrastructure.dao.hb.UserInterestGroupDAOHibernate" />
+    <bean id="interestGroupDAO" class="com.leidos.xchangecore.core.infrastructure.dao.hb.InterestGroupDAOHibernate" />
+    <bean id="agreementDAO" class="com.leidos.xchangecore.core.infrastructure.dao.hb.AgreementDAOHibernate" />
+    <bean id="incidentDAO" class="com.leidos.xchangecore.core.em.dao.hb.IncidentDAOHibernate" />
+    <bean id="leitscIncidentDAO" class="com.leidos.xchangecore.core.em.dao.hb.LEITSCIncidentDAOHibernate" />
+    <bean id="incidentCommandDAO" class="com.leidos.xchangecore.core.em.dao.hb.IncidentCommandDAOHibernate" />
+    <bean id="organizationElementDAO" class="com.leidos.xchangecore.core.em.dao.hb.OrganizationElementDAOHibernate" />
+    <bean id="organizationPositionDAO" class="com.leidos.xchangecore.core.em.dao.hb.OrganizationPositionDAOHibernate" />
 
     <!-- -->
     <!-- Services -->
     <!-- -->
-    <bean id="incidentManagementService" class="com.saic.uicds.core.em.service.impl.IncidentManagementServiceImpl">
+    <bean id="incidentManagementService" class="com.leidos.xchangecore.core.em.service.impl.IncidentManagementServiceImpl">
         <property name="incidentStateNotificationChannel" ref="incidentStateNotificationChannel" />
         <property name="ldapUtil" ref="ldapUtil" />
         <property name="incidentDAO" ref="incidentDAO" />
@@ -98,32 +98,32 @@ http://www.springframework.org/schema/tx http://www.springframework.org/schema/t
         <property name="xsltFilePath" value="xslt/IncidentDigest.xsl" />
         <property name="iconConfigXmlFilePath" value="xml/types_icons.xml" />
     </bean>
-    <bean id="alertService" class="com.saic.uicds.core.em.service.impl.AlertServiceImpl">
+    <bean id="alertService" class="com.leidos.xchangecore.core.em.service.impl.AlertServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
     </bean>
-    <bean id="incidentCommandService" class="com.saic.uicds.core.em.service.impl.IncidentCommandServiceImpl">
+    <bean id="incidentCommandService" class="com.leidos.xchangecore.core.em.service.impl.IncidentCommandServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
         <property name="organizationElementDAO" ref="organizationElementDAO" />
         <property name="incidentCommandDAO" ref="incidentCommandDAO" />
     </bean>
-    <bean id="broadcastService" class="com.saic.uicds.core.em.service.impl.BroadcastServiceImpl">
+    <bean id="broadcastService" class="com.leidos.xchangecore.core.em.service.impl.BroadcastServiceImpl">
         <property name="communicationsService" ref="communicationsService" />
         <property name="directoryService" ref="directoryService" />
         <property name="notificationService" ref="notificationsService" />
     </bean>
-    <bean id="mapService" class="com.saic.uicds.core.em.service.impl.MapServiceImpl">
+    <bean id="mapService" class="com.leidos.xchangecore.core.em.service.impl.MapServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
         <property name="configurationService" ref="configurationService" />
         <property name="shapefileIngester" ref="shapefileIngester" />
     </bean>
-    <bean id="taskingService" class="com.saic.uicds.core.em.service.impl.TaskingServiceImpl">
+    <bean id="taskingService" class="com.leidos.xchangecore.core.em.service.impl.TaskingServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
     </bean>
-    <bean id="resourceManagementService" class="com.saic.uicds.core.em.service.impl.ResourceManagementServiceImpl">
+    <bean id="resourceManagementService" class="com.leidos.xchangecore.core.em.service.impl.ResourceManagementServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
         <property name="communicationsService" ref="communicationsService" />
@@ -131,21 +131,20 @@ http://www.springframework.org/schema/tx http://www.springframework.org/schema/t
         <property name="xsltFilePath" value="xslt/IncidentDigest.xsl" />
         <property name="iconConfigXmlFilePath" value="xml/types_icons.xml" />
     </bean>
-    <bean id="iapService" class="com.saic.uicds.core.em.service.impl.IAPServiceImpl">
+    <bean id="iapService" class="com.leidos.xchangecore.core.em.service.impl.IAPServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
     </bean>
-    <bean id="sensorService" class="com.saic.uicds.core.em.service.impl.SensorServiceImpl">
+    <bean id="sensorService" class="com.leidos.xchangecore.core.em.service.impl.SensorServiceImpl">
         <property name="workProductService" ref="workProductService" />
         <property name="directoryService" ref="directoryService" />
         <property name="xsltFilePath" value="xslt/SOIDigest.xsl" />
         <property name="iconConfigXmlFilePath" value="xml/types_icons.xml" />
     </bean>
-    <bean id="shapefileIngester" class="com.saic.uicds.core.em.util.ShapefileIngester" />
-    <bean id="leitscService" class="com.saic.uicds.core.em.service.impl.LEITSCServiceImpl">
+    <bean id="shapefileIngester" class="com.leidos.xchangecore.core.em.util.ShapefileIngester" />
+    <bean id="leitscService" class="com.leidos.xchangecore.core.em.service.impl.LEITSCServiceImpl">
         <property name="leitscIncidentDAO" ref="leitscIncidentDAO" />
         <property name="incidentManagementService" ref="incidentManagementService" />
     </bean>
 
-    <!-- -->
 </beans>

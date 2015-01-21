@@ -36,13 +36,12 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * The IAPService implementation.
- * 
+ *
  * @author wuerfelr
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class IAPServiceImpl
-    implements IAPService, ServiceNamespaces {
+public class IAPServiceImpl implements IAPService, ServiceNamespaces {
 
     Logger log = LoggerFactory.getLogger(IAPServiceImpl.class);
 
@@ -57,16 +56,18 @@ public class IAPServiceImpl
      * Attach ics forms to iap. If any supplied component Ids are already attached to the IAP (as
      * identifed by Id string, they are removed and added back with the new componentId
      * identification types and the IAP workProduct is re-published
-     * 
-     * @param componentIds the component ids
-     * @param workProductID the work product id
-     * 
+     *
+     * @param componentIds
+     *            the component ids
+     * @param workProductID
+     *            the work product id
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus attachWorkProductToIAP(IdentificationType[] componentIds,
-                                                           String workProductID) {
+            String workProductID) {
 
         // Check if IAP exists
         WorkProduct workProduct = workProductService.getProduct(workProductID);
@@ -83,19 +84,23 @@ public class IAPServiceImpl
             // List<IdentificationType> componentsToAdd =
             // Arrays.asList(componentIds);
 
-            ArrayList<IdentificationType> componentsToAdd = new ArrayList<IdentificationType>(Arrays.asList(componentIds));
+            ArrayList<IdentificationType> componentsToAdd = new ArrayList<IdentificationType>(
+                    Arrays.asList(componentIds));
 
             if (componentsToAdd.size() == 0) {
                 return status;
             }
 
             // If alreay attached then remove it from the list of components to add
-            if (iapDoc.getIncidentActionPlan().getComponents() != null &&
-                iapDoc.getIncidentActionPlan().getComponents().sizeOfComponentArray() > 0) {
-                for (IAPComponentType comp : iapDoc.getIncidentActionPlan().getComponents().getComponentArray()) {
-                    IdentificationType id = comp.getComponentIdentifier().getWorkProductIdentification();
+            if (iapDoc.getIncidentActionPlan().getComponents() != null
+                    && iapDoc.getIncidentActionPlan().getComponents().sizeOfComponentArray() > 0) {
+                for (IAPComponentType comp : iapDoc.getIncidentActionPlan().getComponents()
+                        .getComponentArray()) {
+                    IdentificationType id = comp.getComponentIdentifier()
+                            .getWorkProductIdentification();
                     for (IdentificationType cid : componentIds) {
-                        if (id.getIdentifier().getStringValue().equalsIgnoreCase(cid.getIdentifier().getStringValue())) {
+                        if (id.getIdentifier().getStringValue()
+                                .equalsIgnoreCase(cid.getIdentifier().getStringValue())) {
                             componentsToAdd.remove(cid);
                         }
                     }
@@ -104,13 +109,14 @@ public class IAPServiceImpl
 
             // Add any that are not already in the IAP
             for (IdentificationType comp : componentsToAdd) {
-                iapDoc.getIncidentActionPlan().addNewComponents().addNewComponent().addNewComponentIdentifier().setWorkProductIdentification(comp);
+                iapDoc.getIncidentActionPlan().addNewComponents().addNewComponent()
+                        .addNewComponentIdentifier().setWorkProductIdentification(comp);
             }
 
             // Update the work product if there were any new components added
             if (componentsToAdd.size() > 0) {
                 status = workProductService.publishProduct(newWorkProductVersion(workProduct,
-                    iapDoc));
+                        iapDoc));
             } else {
                 status = new ProductPublicationStatus();
                 status.setStatus(ProductPublicationStatus.SuccessStatus);
@@ -123,9 +129,10 @@ public class IAPServiceImpl
 
     /**
      * Creates and publishes a workProduct of IAP service type.
-     * 
-     * @param plan the plan
-     * 
+     *
+     * @param plan
+     *            the plan
+     *
      * @return the product publication status
      * @ssdd
      */
@@ -153,7 +160,8 @@ public class IAPServiceImpl
         wp.setProductType(IAPService.IAP_WORKPRODUCT_TYPE);
         wp.setProduct(iap);
         wp.setProductID(planWPID);
-        wp.setDigest(new EMDigestHelper(iap.getIncidentActionPlan(), planWPID, approved).getDigest());
+        wp.setDigest(new EMDigestHelper(iap.getIncidentActionPlan(), planWPID, approved)
+                .getDigest());
 
         // Add interest group associated if requested.
         if (plan.getIncidentID() != null) {
@@ -164,9 +172,10 @@ public class IAPServiceImpl
 
     /**
      * Creates and publishes a workProduct of IAP service form type
-     * 
-     * @param form the form
-     * 
+     *
+     * @param form
+     *            the form
+     *
      * @return the product publication status
      * @ssdd
      */
@@ -198,7 +207,7 @@ public class IAPServiceImpl
     private WorkProduct findApprovedIAP(String incidentID) {
 
         List<WorkProduct> workProducts = workProductService.findByInterestGroupAndType(incidentID,
-            IAP_WORKPRODUCT_TYPE);
+                IAP_WORKPRODUCT_TYPE);
 
         List<WorkProduct> approvedIAPs = new ArrayList<WorkProduct>();
 
@@ -215,11 +224,9 @@ public class IAPServiceImpl
                 if (digest.sizeOfThingAbstractArray() > 0) {
                     for (ThingType thing : digest.getThingAbstractArray()) {
                         if (thing instanceof EntityType) {
-                            SimplePropertyType status = DigestHelper.getSimplePropertyFromThing(thing,
-                                InfrastructureNamespaces.UICDS_EVENT_STATUS_CODESPACE,
-                                null,
-                                "Status",
-                                null);
+                            SimplePropertyType status = DigestHelper.getSimplePropertyFromThing(
+                                    thing, InfrastructureNamespaces.UICDS_EVENT_STATUS_CODESPACE,
+                                    null, "Status", null);
                             if (status.getCode().equals("Approved")) {
                                 approvedIAPs.add(product);
                             }
@@ -247,9 +254,10 @@ public class IAPServiceImpl
 
     /**
      * Gets the IAP using the supplied workProduct Id string
-     * 
-     * @param workProductID the work product id
-     * 
+     *
+     * @param workProductID
+     *            the work product id
+     *
      * @return the iAP
      * @ssdd
      */
@@ -278,9 +286,10 @@ public class IAPServiceImpl
 
     /**
      * Gets the ICS form using the supplied workProduct Id string
-     * 
-     * @param workProductID the work product id
-     * 
+     *
+     * @param workProductID
+     *            the work product id
+     *
      * @return the iCS form
      * @ssdd
      */
@@ -299,9 +308,10 @@ public class IAPServiceImpl
 
     /**
      * Gets the list of ICS form workProducts for the given incidentId
-     * 
-     * @param incidentID the incident id
-     * 
+     *
+     * @param incidentID
+     *            the incident id
+     *
      * @return the iCS form list
      * @ssdd
      */
@@ -310,7 +320,7 @@ public class IAPServiceImpl
 
         // GetByType and IncidentID
         List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentID,
-            IAPService.ICSFORM_WORKPRODUCT_TYPE);
+                IAPService.ICSFORM_WORKPRODUCT_TYPE);
         if (wpList == null || wpList.size() <= 0) {
             return null;
         }
@@ -320,7 +330,7 @@ public class IAPServiceImpl
     }
 
     private WorkProduct newWorkProductVersion(WorkProduct workProduct,
-                                              IncidentActionPlanDocument iapDoc) {
+            IncidentActionPlanDocument iapDoc) {
 
         workProduct.setProduct(iapDoc);
         return workProduct;
@@ -329,12 +339,13 @@ public class IAPServiceImpl
     /**
      * This takes an IAP from the list of IAP's for this incident and turns it into the 'active'
      * IAP.
-     * 
-     * @param workProductID the work product id
+     *
+     * @param workProductID
+     *            the work product id
      */
     @Override
     public ProductPublicationStatus setApprovedIAP(IdentificationType workProductID,
-                                                   String incidentID) {
+            String incidentID) {
 
         ProductPublicationStatus status = new ProductPublicationStatus();
         status.setStatus(ProductPublicationStatus.FailureStatus);
@@ -355,8 +366,8 @@ public class IAPServiceImpl
         // Create a new IAP work product that is marked as approved
         if (approvedIAP == null) {
             if (incidentID != null && !incidentID.isEmpty()) {
-                if (iap.getIncidentActionPlan().getIncidentID() == null ||
-                    iap.getIncidentActionPlan().getIncidentID().isEmpty()) {
+                if (iap.getIncidentActionPlan().getIncidentID() == null
+                        || iap.getIncidentActionPlan().getIncidentID().isEmpty()) {
                     iap.getIncidentActionPlan().setIncidentID(incidentID);
                 }
             }
@@ -370,11 +381,10 @@ public class IAPServiceImpl
         }
         // Update the current approved work product
         else {
-            IdentificationType workProductIdentification = WorkProductHelper.getWorkProductIdentification(approvedIAP);
-            status = updateIAPWorkProduct(iap.getIncidentActionPlan(),
-                workProductIdentification,
-                true,
-                approvedIAP);
+            IdentificationType workProductIdentification = WorkProductHelper
+                    .getWorkProductIdentification(approvedIAP);
+            status = updateIAPWorkProduct(iap.getIncidentActionPlan(), workProductIdentification,
+                    true, approvedIAP);
         }
 
         return status;
@@ -387,7 +397,7 @@ public class IAPServiceImpl
     }
 
     /**
-     * 
+     *
      * @param workProductService
      */
     public void setWorkProductService(WorkProductService workProductService) {
@@ -405,16 +415,18 @@ public class IAPServiceImpl
 
     /**
      * Update an IAP workProduct given the workProduct identification.
-     * 
-     * @param document the document
-     * @param workProductIdentification the work product identification
-     * 
+     *
+     * @param document
+     *            the document
+     * @param workProductIdentification
+     *            the work product identification
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus updateDocument(DocumentType document,
-                                                   IdentificationType workProductIdentification) {
+            IdentificationType workProductIdentification) {
 
         WorkProduct wp = workProductService.getProduct(document.getId());
         if (wp != null) {
@@ -435,17 +447,18 @@ public class IAPServiceImpl
     /**
      * Publishes an updated IAP workProduct if the product already exists or publishes a new IAP
      * workProduct if it does not.
-     * 
-     * @param plan the plan
-     * @param workProductIdentification the work product identification
-     * 
+     *
+     * @param plan
+     *            the plan
+     * @param workProductIdentification
+     *            the work product identification
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus updateIAP(IncidentActionPlanType plan,
-                                              IdentificationType workProductIdentification,
-                                              boolean activate) {
+            IdentificationType workProductIdentification, boolean activate) {
 
         WorkProduct wp = workProductService.getProduct(workProductIdentification);
 
@@ -453,9 +466,7 @@ public class IAPServiceImpl
     }
 
     private ProductPublicationStatus updateIAPWorkProduct(IncidentActionPlanType plan,
-                                                          IdentificationType workProductIdentification,
-                                                          boolean activate,
-                                                          WorkProduct wp) {
+            IdentificationType workProductIdentification, boolean activate, WorkProduct wp) {
 
         // if updating to activate the IAP then use the current IAP payload
         if (plan == null) {
@@ -466,9 +477,8 @@ public class IAPServiceImpl
             iap.addNewIncidentActionPlan().set(plan);
             // WorkProduct newWP = new WorkProduct(wp);
             wp.setProduct(iap);
-            wp.setDigest(new EMDigestHelper(iap.getIncidentActionPlan(),
-                                            workProductIdentification.getIdentifier().getStringValue(),
-                                            activate).getDigest());
+            wp.setDigest(new EMDigestHelper(iap.getIncidentActionPlan(), workProductIdentification
+                    .getIdentifier().getStringValue(), activate).getDigest());
             ProductPublicationStatus status = workProductService.publishProduct(wp);
             return status;
         } else {
@@ -482,16 +492,18 @@ public class IAPServiceImpl
     /**
      * Publishes an updated ICS form workProduct if the product already exists or publishes a new
      * ICS form workProduct if it does not.
-     * 
-     * @param form the form
-     * @param workProductIdentification the work product identification
-     * 
+     *
+     * @param form
+     *            the form
+     * @param workProductIdentification
+     *            the work product identification
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus updateICSForm(ICSFormDocumentType form,
-                                                  IdentificationType workProductIdentification) {
+            IdentificationType workProductIdentification) {
 
         WorkProduct wp = workProductService.getProduct(workProductIdentification);
         if (wp != null) {

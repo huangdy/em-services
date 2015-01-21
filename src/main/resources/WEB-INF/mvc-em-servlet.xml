@@ -10,11 +10,11 @@
 	<!-- Servlets -->
 
 	<bean id="mapServiceWmsController"
-		class="com.saic.uicds.core.em.controller.MapServiceWmsController">
+		class="com.leidos.xchangecore.core.em.controller.MapServiceWmsController">
 		<property name="mapService" ref="mapService"/>
 	</bean>
 
-	<bean id="searchController" class="com.saic.uicds.core.em.controller.SearchController">
+	<bean id="searchController" class="com.leidos.xchangecore.core.em.controller.SearchController">
 		<property name="configurationService" ref="configurationService"/>
 		<property name="supportedMethods" value="GET"/>
 		<property name="connectorFactory">
@@ -28,7 +28,7 @@
 		</property>
 	</bean>
 
-	<bean id="featureWmsController" class="com.saic.uicds.core.em.controller.FeatureWmsController">
+	<bean id="featureWmsController" class="com.leidos.xchangecore.core.em.controller.FeatureWmsController">
 		<property name="workProductService" ref="workProductService"/>
 	</bean>
 

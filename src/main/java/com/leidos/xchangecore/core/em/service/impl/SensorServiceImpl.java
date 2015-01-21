@@ -23,14 +23,13 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * The SensorService implementation.
- * 
+ *
  * @author Aruna Hau
  * @since 1.0
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class SensorServiceImpl
-    implements SensorService, ServiceNamespaces {
+public class SensorServiceImpl implements SensorService, ServiceNamespaces {
 
     Logger logger = LoggerFactory.getLogger(SensorServiceImpl.class);
 
@@ -43,18 +42,20 @@ public class SensorServiceImpl
 
     /**
      * Creates the soi workProduct and publishes it.
-     * 
-     * @param soi the soi
-     * @param incidentID the incident id
-     * 
+     *
+     * @param soi
+     *            the soi
+     * @param incidentID
+     *            the incident id
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus createSOI(SensorObservationInfo soi, String incidentID) {
 
-        //logger.error("createSOI incidentID:\n" + incidentID);
-        //logger.error("createSOI SensorObservationInfo:\n" + soi.toString());
+        // logger.error("createSOI incidentID:\n" + incidentID);
+        // logger.error("createSOI SensorObservationInfo:\n" + soi.toString());
 
         WorkProduct wp = new WorkProduct();
         if (incidentID != null) {
@@ -66,10 +67,10 @@ public class SensorServiceImpl
         SensorObservationInfoDocument soiDoc = SensorObservationInfoDocument.Factory.newInstance();
         soiDoc.addNewSensorObservationInfo().set(soi);
 
-        //logger.error("SensorObservationInfoDocument:\n" + soiDoc.toString());
+        // logger.error("SensorObservationInfoDocument:\n" + soiDoc.toString());
 
         // Create the digest using XSLT
-        //if (xsltFilePath == null) 
+        // if (xsltFilePath == null)
         xsltFilePath = "xslt/SOIDigest.xsl";
         if (iconConfigXmlFilePath == null) {
             iconConfigXmlFilePath = "xml/types_icons.xml";
@@ -80,9 +81,9 @@ public class SensorServiceImpl
         wp.setProduct(soiDoc);
 
         wp.setDigest(digestDoc);
-        //wp.setDigest(new EMDigestHelper(soi).getDigest());
+        // wp.setDigest(new EMDigestHelper(soi).getDigest());
 
-        //System.out.println("createSOI: wp's product=[" + wp.getProduct() + "]");
+        // System.out.println("createSOI: wp's product=[" + wp.getProduct() + "]");
 
         ProductPublicationStatus status = workProductService.publishProduct(wp);
 
@@ -91,9 +92,10 @@ public class SensorServiceImpl
 
     /**
      * Delete soi.
-     * 
-     * @param productID the product id
-     * 
+     *
+     * @param productID
+     *            the product id
+     *
      * @return the product publication status
      * @ssdd
      */
@@ -113,13 +115,15 @@ public class SensorServiceImpl
 
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
-            status = getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(wp));
+            status = getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(wp));
             if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
                 return status;
             }
         }
 
-        return getWorkProductService().archiveProduct(WorkProductHelper.getWorkProductIdentification(wp));
+        return getWorkProductService().archiveProduct(
+                WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     public DirectoryService getDirectoryService() {
@@ -137,9 +141,10 @@ public class SensorServiceImpl
 
     /**
      * Gets the SOI workProduct by productId.
-     * 
-     * @param productID the product id
-     * 
+     *
+     * @param productID
+     *            the product id
+     *
      * @return the sOI
      * @ssdd
      */
@@ -152,9 +157,10 @@ public class SensorServiceImpl
 
     /**
      * Gets the SOI list associated with a specific interest group incidentId.
-     * 
-     * @param incidentID the incident id
-     * 
+     *
+     * @param incidentID
+     *            the incident id
+     *
      * @return the sOI list
      * @ssdd
      */
@@ -193,7 +199,8 @@ public class SensorServiceImpl
     }
 
     /**
-     * @param getIconConfigXmlFilePath to set
+     * @param getIconConfigXmlFilePath
+     *            to set
      */
     public void setIconConfigXmlFilePath(String iconConfigXmlFilePath) {
 
@@ -206,7 +213,8 @@ public class SensorServiceImpl
     }
 
     /**
-     * @param xsltFilePath the xsltFilePath to set
+     * @param xsltFilePath
+     *            the xsltFilePath to set
      */
     public void setXsltFilePath(String xsltFilePath) {
 
@@ -219,19 +227,19 @@ public class SensorServiceImpl
 
         WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(SensorService.Type);
-        directoryService.registerUICDSService(NS_SensorService,
-            SENSOR_SERVICE_NAME,
-            typeList,
-            typeList);
+        directoryService.registerUICDSService(NS_SensorService, SENSOR_SERVICE_NAME, typeList,
+                typeList);
     }
 
     /**
      * Update SOI. Get the productId from the package identifier, retrieve the workProduct and
      * publish an updated SOI
-     * 
-     * @param soi the soi
-     * @param pkgId the pkg id
-     * 
+     *
+     * @param soi
+     *            the soi
+     * @param pkgId
+     *            the pkg id
+     *
      * @return the product publication status
      * @ssdd
      */
@@ -252,7 +260,7 @@ public class SensorServiceImpl
         wp = WorkProductHelper.setWorkProductIdentification(wp, pkgId);
 
         // Create the digest using XSLT
-        //if (xsltFilePath == null) 
+        // if (xsltFilePath == null)
         xsltFilePath = "xslt/SOIDigest.xsl";
         if (iconConfigXmlFilePath == null) {
             iconConfigXmlFilePath = "xml/types_icons.xml";
@@ -261,7 +269,7 @@ public class SensorServiceImpl
         DigestDocument digestDoc = digestGenerator.createDigest(soiDoc);
 
         wp.setDigest(digestDoc);
-        //newWP.setDigest(new EMDigestHelper(soi).getDigest());
+        // newWP.setDigest(new EMDigestHelper(soi).getDigest());
 
         ProductPublicationStatus status = workProductService.publishProduct(wp);
 

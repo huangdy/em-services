@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:util="http://www.springframework.org/schema/util" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xmlns:integration="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop" xmlns:integration="http://www.springframework.org/schema/integration"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<context:annotation-config />
+    <context:annotation-config />
 
 	<!--           -->
 	<!-- Processes -->
 	<!-- UnComment this section to generate ICS product automatically
-	<bean id="icsGenerator" class="com.saic.uicds.core.em.processes.icsgen.IcsGenerator">
+	<bean id="icsGenerator" class="com.leidos.xchangecore.core.em.processes.icsgen.IcsGenerator">
 		<property name="incidentCommandService" ref="incidentCommandService" />
 		<property name="workProductService" ref="workProductService" />
 	</bean>
@@ -26,34 +24,31 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 
     <integration:publish-subscribe-channel id="pingChannel" />
 
-	<bean id="autoShareIncidents"
-		class="com.saic.uicds.core.em.processes.agreements.AutoShareIncidents">
-		<property name="workProductService" ref="workProductService" />
+    <bean id="autoShareIncidents" class="com.leidos.xchangecore.core.em.processes.agreements.AutoShareIncidents">
+        <property name="workProductService" ref="workProductService" />
         <property name="agreementDAO" ref="agreementDAO" />
         <property name="queuedMessageDAO" ref="queuedMessageDAO" />
         <property name="incidentManagementService" ref="incidentManagementService" />
-		<property name="directoryService" ref="directoryService" />
+        <property name="directoryService" ref="directoryService" />
         <property name="pingChannel" ref="pingChannel" />
-	</bean>
+    </bean>
 
 	<!-- START_DEPLOY_TOKEN -->
-	<integration:service-activator
-		input-channel="incidentStateNotificationChannel" ref="autoShareIncidents"
-		method="handleIncidentState" />
-	<integration:service-activator
-		input-channel="coreStatusUpdateChannel" ref="autoShareIncidents"
-		method="coreStatusUpdateHandler" />
+    <integration:service-activator input-channel="incidentStateNotificationChannel"
+        ref="autoShareIncidents" method="handleIncidentState" />
+    <integration:service-activator input-channel="coreStatusUpdateChannel"
+        ref="autoShareIncidents" method="coreStatusUpdateHandler" />
 	<!-- END_DEPLOY_TOKEN -->
 
 	<!-- START_IPAWS_TOKEN -->
 
 <!--  
-	<bean id="ipawsAgent" class="com.saic.uicds.core.em.processes.ipaws.IPAWSAgent">
+	<bean id="ipawsAgent" class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSAgent">
 		<property name="ipawsCap" ref="ipawsCap" /> 
 		<property name="ipawsEdxl" ref="ipawsEdxl" />
 	</bean>
 
-	 <bean id="ipawsCap" class="com.saic.uicds.core.em.processes.ipaws.IPAWSCap">
+	 <bean id="ipawsCap" class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSCap">
 		<property name="webServiceClient" ref="ipawsCAPWebServiceClient" />
 		<property name="alertWorkProduct" ref="ipawsAlertWorkProduct" />
 		<property name="cogs" value="120018" />
@@ -61,7 +56,7 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 		<property name="firstRetrievePeriod" value="ALL" />
 	</bean>  
 
-	<bean id="ipawsEdxl" class="com.saic.uicds.core.em.processes.ipaws.IPAWSEdxl">
+	<bean id="ipawsEdxl" class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSEdxl">
 		<property name="webServiceClient" ref="ipawsEDXLWebServiceClient" />
 		<property name="ipawsCap" ref="ipawsCap" />
 		<property name="ipawsBroadcast" ref="ipawsBroadcast" />
@@ -71,12 +66,12 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 	</bean>
 
 	<bean id="ipawsAlertWorkProduct"
-		class="com.saic.uicds.core.em.processes.ipaws.IPAWSAlertWorkProduct" />
+		class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSAlertWorkProduct" />
 	<bean id="ipawsBroadcast"
-		class="com.saic.uicds.core.em.processes.ipaws.IPAWSEdxlBroadcast" />
+		class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSEdxlBroadcast" />
 
 	<bean id="ipawsCAPWebServiceClient"
-		class="com.saic.uicds.core.em.processes.ipaws.IPAWSSpringClient">
+		class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSSpringClient">
 		<property name="webServiceTemplate" ref="ipawsCAPServiceTemplate" />
 		<property name="URI"
 			value="https://tdl.integration.fema.gov/DMOPEN_CAPService/DMOPEN_CAPService" />
@@ -84,7 +79,7 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 
 
 	<bean id="ipawsEDXLWebServiceClient"
-		class="com.saic.uicds.core.em.processes.ipaws.IPAWSSpringClient">
+		class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSSpringClient">
 		<property name="webServiceTemplate" ref="ipawsEDXLServiceTemplate" />
 		<property name="URI"
 			value="https://tdl.integration.fema.gov/DMOPEN_EDXLDEService/DMOPEN_EDXLDEService" />
@@ -162,8 +157,8 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
       <property name="securementSignatureParts" value="Body" />
     </bean>
     
-    <bean id="capHeaderInterceptor" class="com.saic.uicds.core.em.processes.ipaws.IPAWSCAPHeaderType"/>
-    <bean id="edxlHeaderInterceptor" class="com.saic.uicds.core.em.processes.ipaws.IPAWSEDXLHeaderType"/>
+    <bean id="capHeaderInterceptor" class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSCAPHeaderType"/>
+    <bean id="edxlHeaderInterceptor" class="com.leidos.xchangecore.core.em.processes.ipaws.IPAWSEDXLHeaderType"/>
 -->
 
 

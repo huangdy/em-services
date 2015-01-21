@@ -25,16 +25,18 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * The IncidentCommandService implementation.
- * 
- * @see com.leidos.xchangecore.core.em.model.IncidentCommandStructure IncidentCommandStructure Data Model
+ *
+ * @see com.leidos.xchangecore.core.em.model.IncidentCommandStructure IncidentCommandStructure Data
+ *      Model
  * @see com.leidos.xchangecore.core.em.model.OrganizationElement OrganizationElement Data Model
- * @see com.leidos.xchangecore.core.em.model.OrganizationPositionType OrganizationPositionType Data Model
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.em.model.OrganizationPositionType OrganizationPositionType Data
+ *      Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
 @Transactional
-public class IncidentCommandServiceImpl
-    implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
+public class IncidentCommandServiceImpl implements IncidentCommandService, ServiceNamespaces,
+        InfrastructureNamespaces {
 
     private final Logger log = LoggerFactory.getLogger(IncidentCommandServiceImpl.class);
 
@@ -48,9 +50,10 @@ public class IncidentCommandServiceImpl
     /**
      * Gets the command structure by incident. Looks for incidents associated with the given
      * incidentId. If there are none, then create a new ICS and associate the incident with it.
-     * 
-     * @param incidentID the incident id
-     * 
+     *
+     * @param incidentID
+     *            the incident id
+     *
      * @return the command structure by incident
      * @ssdd
      */
@@ -61,9 +64,8 @@ public class IncidentCommandServiceImpl
 
         try {
             // try the type as ICSType
-            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType,
-                null,
-                null);
+            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType, null,
+                    null);
             // if there is no ICSType, try the MACSType
             if (icsList.size() == 0) {
                 icsList = workProductService.getProductByTypeAndXQuery(MACSType, null, null);
@@ -107,26 +109,25 @@ public class IncidentCommandServiceImpl
 
     private String getWorkProductTypeByOrg(OrganizationElementDocument org) {
 
-        if (org == null || org.getOrganizationElement() == null ||
-            org.getOrganizationElement().getPersonInCharge() == null ||
-            org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null) {
+        if (org == null || org.getOrganizationElement() == null
+                || org.getOrganizationElement().getPersonInCharge() == null
+                || org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null) {
             return "UnknownType";
         }
 
-        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef().startsWith(IncidentCommanderRole)
-                                                                                                                     ? ICSType
-                                                                                                                     : MACSType;
+        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef()
+                .startsWith(IncidentCommanderRole) ? ICSType : MACSType;
     }
 
     /*
      * private ProfileService profileService;
-     * 
+     *
      * public void setProfileService(ProfileService profileService) {
-     * 
+     *
      * this.profileService = profileService; }
-     * 
+     *
      * public ProfileService getProfileService() {
-     * 
+     *
      * return this.profileService; }
      */
     public void setDirectoryService(DirectoryService directoryService) {
@@ -156,23 +157,21 @@ public class IncidentCommandServiceImpl
         typeList.addProductType(ICSType);
         typeList.addProductType(MACSType);
         getDirectoryService().registerUICDSService(NS_IncidentCommandStructureService,
-            ICS_SERVICE_NAME,
-            typeList,
-            typeList);
+                ICS_SERVICE_NAME, typeList, typeList);
     }
 
     /*
      * private ProductPublicationStatus associateProfilesToICSIncident(OrganizationElement org,
      * IncidentInfoType incidentRecordType) {
-     * 
+     *
      * // Null check Organization ProductPublicationStatus status = new ProductPublicationStatus();
      * // need to initialize to to something????
-     * 
+     *
      * if (org != null && incidentRecordType != null) { // Organization is a hierarchy org chart. //
      * Each org has a person in charge and their respective staff // These are the positionType and
      * include personal profile and the role profile // The Role profile is what needs to be updated
      * with the current incident
-     * 
+     *
      * // Get the person in charge OrganizationPositionType boss = org.getPersonInCharge(); // Call
      * the profileService, associate incident if (boss != null) {
      * getProfileService().addIncident(boss.getRoleProfileRef(), incidentRecordType); } // Get the
@@ -180,7 +179,7 @@ public class IncidentCommandServiceImpl
      * (OrganizationPositionType position : staff) { // Call the profileService, associate incident
      * if (position.getRoleProfileRef() != null) {
      * getProfileService().addIncident(position.getRoleProfileRef(), incidentRecordType); } }
-     * 
+     *
      * // Get organizations Set<String> orgs = org.getOrganizations(); for (String orgId : orgs) {
      * OrganizationElement organization = organizationElementDAO.findById(orgId); status =
      * associateProfilesToICSIncident(organization, incidentRecordType); } } return status; }
@@ -188,22 +187,24 @@ public class IncidentCommandServiceImpl
 
     /**
      * Update command structure.
-     * 
-     * @param pkgId the pkg id
-     * @param org the org
-     * @param incidentID the incident id
-     * 
+     *
+     * @param pkgId
+     *            the pkg id
+     * @param org
+     *            the org
+     * @param incidentID
+     *            the incident id
+     *
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus updateCommandStructure(IdentificationType pkgId,
 
-    // Actually, we don't need to model the Command Structure anymore since we will take it as
-    // product and save it
+            // Actually, we don't need to model the Command Structure anymore since we will take it as
+            // product and save it
 
-                                                           OrganizationElementDocument org,
-                                                           String incidentID) {
+            OrganizationElementDocument org, String incidentID) {
 
         log.debug("updateCommandStructure");
         if (incidentID != null) {

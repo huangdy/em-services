@@ -79,14 +79,14 @@ import com.leidos.xchangecore.core.infrastructure.util.UicdsStringUtil;
 
 /**
  * The ResourceManagementService implementation.
- * 
+ *
  * @author roger
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
 
-public class ResourceManagementServiceImpl
-    implements ResourceManagementService, ServiceNamespaces, InfrastructureNamespaces {
+public class ResourceManagementServiceImpl implements ResourceManagementService, ServiceNamespaces,
+        InfrastructureNamespaces {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -98,11 +98,13 @@ public class ResourceManagementServiceImpl
 
     private NotificationService notificationService;
 
-    public static final QName REQUEST_RESOURCE_QNAME = RequestResourceDocument.type.getDocumentElementName();
-    public static final QName COMMIT_RESOURCE_QNAME = CommitResourceDocument.type.getDocumentElementName();
+    public static final QName REQUEST_RESOURCE_QNAME = RequestResourceDocument.type
+            .getDocumentElementName();
+    public static final QName COMMIT_RESOURCE_QNAME = CommitResourceDocument.type
+            .getDocumentElementName();
 
-    public static final QName VALUE_LIST_URN_QNAME = new QName(ValueListURNType.type.getName().getNamespaceURI(),
-                                                               "ValueListURN");
+    public static final QName VALUE_LIST_URN_QNAME = new QName(ValueListURNType.type.getName()
+            .getNamespaceURI(), "ValueListURN");
 
     public static final String NIMS_NS = "http://nimsonline.org/2.0";
 
@@ -114,26 +116,29 @@ public class ResourceManagementServiceImpl
 
     private DigestGenerator digestGenerator;
 
-    private LocationType addDestinationLocation(x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
+    private LocationType addDestinationLocation(
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
 
         // Create a digest location element of for the first schedule element of the correct type
         LocationType destination = null;
         if (info.sizeOfScheduleInformationArray() > 0) {
-            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation.ScheduleInformation sch : info.getScheduleInformationArray()) {
-                if (sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_ARRIVAL ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.ESTIMATED_ARRIVAL ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_DEPARTURE ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.ESTIMATED_DEPARTURE ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.ACTUAL_DEPARTURE ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.COMMITTED ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.REPORT_TO ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.ROUTE) {
+            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation.ScheduleInformation sch : info
+                    .getScheduleInformationArray()) {
+                if (sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_ARRIVAL
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.ESTIMATED_ARRIVAL
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_DEPARTURE
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.ESTIMATED_DEPARTURE
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.ACTUAL_DEPARTURE
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.COMMITTED
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.REPORT_TO
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.ROUTE) {
                     if (sch.getLocation() != null) {
                         destination = LocationType.Factory.newInstance();
                         destination.setId(UUIDUtil.getID("Location"));
                         // TODO: handle more than just description
                         if (sch.getLocation().getLocationDescription() != null) {
-                            destination.addNewDescriptor().setStringValue(sch.getLocation().getLocationDescription());
+                            destination.addNewDescriptor().setStringValue(
+                                    sch.getLocation().getLocationDescription());
                         }
                         // Handle target area
                         if (sch.getLocation().getTargetArea() != null) {
@@ -141,14 +146,20 @@ public class ResourceManagementServiceImpl
                                 PointDocument point = PointDocument.Factory.newInstance();
                                 point.addNewPoint().addNewPoint();
                                 point.getPoint().getPoint().setId(UUIDUtil.getID("point"));
-                                point.getPoint().getPoint().addNewPos().setStringValue(sch.getLocation().getTargetArea().getPoint().getPos().getStringValue());
+                                point.getPoint()
+                                        .getPoint()
+                                        .addNewPos()
+                                        .setStringValue(
+                                                sch.getLocation().getTargetArea().getPoint()
+                                                        .getPos().getStringValue());
                                 point.getPoint().getPoint().getPos().setSrsName(EMGeoUtil.EPSG4326);
                                 destination.addNewGeoLocation().set(point);
                             }
                         }
                         if (sch.getLocation().getAddress() != null) {
                             AddressType a = sch.getLocation().getAddress();
-                            PostalAddress postalAddress = digestAddressType(sch.getLocation().getAddress());
+                            PostalAddress postalAddress = digestAddressType(sch.getLocation()
+                                    .getAddress());
                             destination.addNewPhysicalAddress().setPostalAddress(postalAddress);
                         }
                     }
@@ -160,21 +171,23 @@ public class ResourceManagementServiceImpl
         return destination;
     }
 
-    private LocationType addDestinationLocation(x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info) {
+    private LocationType addDestinationLocation(
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info) {
 
         // Create a digest location element of for the first schedule element of the correct type
         LocationType destination = null;
         if (info.sizeOfScheduleInformationArray() > 0) {
             for (ScheduleInformation sch : info.getScheduleInformationArray()) {
-                if (sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_ARRIVAL ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_DEPARTURE ||
-                    sch.getScheduleType() == ScheduleInformation.ScheduleType.REPORT_TO) {
+                if (sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_ARRIVAL
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.REQUESTED_DEPARTURE
+                        || sch.getScheduleType() == ScheduleInformation.ScheduleType.REPORT_TO) {
                     destination = LocationType.Factory.newInstance();
                     destination.setId(UUIDUtil.getID("Location"));
                     if (sch.getLocation() != null) {
                         // Add in location description if available
                         if (sch.getLocation().getLocationDescription() != null) {
-                            destination.addNewDescriptor().setStringValue(sch.getLocation().getLocationDescription());
+                            destination.addNewDescriptor().setStringValue(
+                                    sch.getLocation().getLocationDescription());
                         }
                         // Handle target area
                         if (sch.getLocation().getTargetArea() != null) {
@@ -182,14 +195,20 @@ public class ResourceManagementServiceImpl
                                 PointDocument point = PointDocument.Factory.newInstance();
                                 point.addNewPoint().addNewPoint();
                                 point.getPoint().getPoint().setId(UUIDUtil.getID("point"));
-                                point.getPoint().getPoint().addNewPos().setStringValue(sch.getLocation().getTargetArea().getPoint().getPos().getStringValue());
+                                point.getPoint()
+                                        .getPoint()
+                                        .addNewPos()
+                                        .setStringValue(
+                                                sch.getLocation().getTargetArea().getPoint()
+                                                        .getPos().getStringValue());
                                 point.getPoint().getPoint().getPos().setSrsName(EMGeoUtil.EPSG4326);
                                 destination.addNewGeoLocation().set(point);
                             }
                         }
                         if (sch.getLocation().getAddress() != null) {
                             AddressType a = sch.getLocation().getAddress();
-                            PostalAddress postalAddress = digestAddressType(sch.getLocation().getAddress());
+                            PostalAddress postalAddress = digestAddressType(sch.getLocation()
+                                    .getAddress());
                             destination.addNewPhysicalAddress().setPostalAddress(postalAddress);
                         }
                     }
@@ -201,11 +220,13 @@ public class ResourceManagementServiceImpl
         return destination;
     }
 
-    private void addNIMSTypePropertiesFromCommit(EntityType event,
-                                                 x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
+    private void addNIMSTypePropertiesFromCommit(
+            EntityType event,
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
 
         if (info.getResource().getTypeStructure() != null) {
-            XmlObject[] valueLists = info.getResource().getTypeStructure().selectChildren(VALUE_LIST_URN_QNAME);
+            XmlObject[] valueLists = info.getResource().getTypeStructure()
+                    .selectChildren(VALUE_LIST_URN_QNAME);
             if (valueLists.length > 0) {
                 XmlCursor c = valueLists[0].newCursor();
                 // make sure this is the type struct we are looking for
@@ -213,20 +234,21 @@ public class ResourceManagementServiceImpl
                     addTypeInfoProperty(event, "Category", info.getResource().getTypeInfo());
                     addTypeInfoProperty(event, "Kind", info.getResource().getTypeInfo());
                     addTypeInfoProperty(event, "Resource", info.getResource().getTypeInfo());
-                    addTypeInfoProperty(event,
-                        "MinimumCapabilities",
-                        info.getResource().getTypeInfo());
+                    addTypeInfoProperty(event, "MinimumCapabilities", info.getResource()
+                            .getTypeInfo());
                 }
                 c.dispose();
             }
         }
     }
 
-    private void addNIMSTypePropertiesFromRequest(EventType event,
-                                                  x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info) {
+    private void addNIMSTypePropertiesFromRequest(
+            EventType event,
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info) {
 
         if (info.getResource().getTypeStructure() != null) {
-            XmlObject[] valueLists = info.getResource().getTypeStructure().selectChildren(VALUE_LIST_URN_QNAME);
+            XmlObject[] valueLists = info.getResource().getTypeStructure()
+                    .selectChildren(VALUE_LIST_URN_QNAME);
             if (valueLists.length > 0) {
                 XmlCursor c = valueLists[0].newCursor();
                 // make sure this is the type struct we are looking for
@@ -234,35 +256,34 @@ public class ResourceManagementServiceImpl
                     addTypeInfoProperty(event, "Category", info.getResource().getTypeInfo());
                     addTypeInfoProperty(event, "Kind", info.getResource().getTypeInfo());
                     addTypeInfoProperty(event, "Resource", info.getResource().getTypeInfo());
-                    addTypeInfoProperty(event,
-                        "MinimumCapabilities",
-                        info.getResource().getTypeInfo());
+                    addTypeInfoProperty(event, "MinimumCapabilities", info.getResource()
+                            .getTypeInfo());
                 }
                 c.dispose();
             }
         }
     }
 
-    private void addQuantityProperty(EventType event,
-                                     x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation resourceInfo) {
+    private void addQuantityProperty(
+            EventType event,
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation resourceInfo) {
 
-        if (resourceInfo.getAssignmentInformation() != null &&
-            resourceInfo.getAssignmentInformation().getQuantity() != null &&
-            resourceInfo.getAssignmentInformation().getQuantity().sizeOfQuantityTextArray() > 0) {
-            String codespace = resourceInfo.getAssignmentInformation().getQuantity().schemaType().getName().getNamespaceURI();
+        if (resourceInfo.getAssignmentInformation() != null
+                && resourceInfo.getAssignmentInformation().getQuantity() != null
+                && resourceInfo.getAssignmentInformation().getQuantity().sizeOfQuantityTextArray() > 0) {
+            String codespace = resourceInfo.getAssignmentInformation().getQuantity().schemaType()
+                    .getName().getNamespaceURI();
             String label = "Quantity";
             String code = "AssignmentInformation.Quantity";
-            String value = resourceInfo.getAssignmentInformation().getQuantity().getQuantityTextArray(0);
+            String value = resourceInfo.getAssignmentInformation().getQuantity()
+                    .getQuantityTextArray(0);
 
             addSimpleProperty(event, codespace, code, label, value);
         }
     }
 
-    private void addSimpleProperty(ThingType thing,
-                                   String codespace,
-                                   String code,
-                                   String label,
-                                   String value) {
+    private void addSimpleProperty(ThingType thing, String codespace, String code, String label,
+            String value) {
 
         SimplePropertyType property = createSimpleProperty(codespace, code, label, value);
         thing.addNewSimpleProperty().set(property);
@@ -290,18 +311,18 @@ public class ResourceManagementServiceImpl
         // found
         if (commitResource.sizeOfContactInformationArray() > 0) {
             for (ContactInformationType contact : commitResource.getContactInformationArray()) {
-                if (contact.getContactRole() != null &&
-                    contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.SENDER) {
-                    if (contact.getContactDescription() != null &&
-                        !contact.getContactDescription().isEmpty()) {
+                if (contact.getContactRole() != null
+                        && contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.SENDER) {
+                    if (contact.getContactDescription() != null
+                            && !contact.getContactDescription().isEmpty()) {
                         label = contact.getContactDescription();
                     }
                 }
             }
             if (label == null) {
                 for (ContactInformationType contact : commitResource.getContactInformationArray()) {
-                    if (contact.getContactDescription() != null &&
-                        !contact.getContactDescription().isEmpty()) {
+                    if (contact.getContactDescription() != null
+                            && !contact.getContactDescription().isEmpty()) {
                         label = contact.getContactDescription();
                     }
                 }
@@ -316,10 +337,8 @@ public class ResourceManagementServiceImpl
                 msgDesc = commitResource.getMessageDescription().toString();
             }
             incidentRef = digestIncidentInformation(digest,
-                commitResource.getIncidentInformationArray(0),
-                msgDesc,
-                COMMIT_RESOURCE_PRODUCT_TYPE,
-                label);
+                    commitResource.getIncidentInformationArray(0), msgDesc,
+                    COMMIT_RESOURCE_PRODUCT_TYPE, label);
         }
 
         // List of all commit events created from this RequestResource
@@ -331,17 +350,15 @@ public class ResourceManagementServiceImpl
         if (commitResource.sizeOfResourceInformationArray() > 0) {
             // Need to use fqn here because EDXL-RM overloads the
             // ResourceInformation element name
-            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info : commitResource.getResourceInformationArray()) {
-                EntityRefType ref = digestCommitResourceInformation(digest,
-                    info,
-                    commitResource.getOriginatingMessageID(),
-                    getCommitStatusProperty(info));
+            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info : commitResource
+                    .getResourceInformationArray()) {
+                EntityRefType ref = digestCommitResourceInformation(digest, info,
+                        commitResource.getOriginatingMessageID(), getCommitStatusProperty(info));
                 commitEvents.addAll(ref.getRef());
                 // Involve the entity in the incident event
                 if (incidentRef != null) {
-                    digest.setInvolvedIn((String) ref.getRef().get(0),
-                        (String) incidentRef.getRef().get(0),
-                        now);
+                    digest.setInvolvedIn((String) ref.getRef().get(0), (String) incidentRef
+                            .getRef().get(0), now);
                 }
                 LocationType location = addDestinationLocation(info);
                 if (location != null) {
@@ -370,18 +387,18 @@ public class ResourceManagementServiceImpl
         // found
         if (req.sizeOfContactInformationArray() > 0) {
             for (ContactInformationType contact : req.getContactInformationArray()) {
-                if (contact.getContactRole() != null &&
-                    contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.REQUESTER) {
-                    if (contact.getContactDescription() != null &&
-                        !contact.getContactDescription().isEmpty()) {
+                if (contact.getContactRole() != null
+                        && contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.REQUESTER) {
+                    if (contact.getContactDescription() != null
+                            && !contact.getContactDescription().isEmpty()) {
                         label = contact.getContactDescription();
                     }
                 }
             }
             if (label == null) {
                 for (ContactInformationType contact : req.getContactInformationArray()) {
-                    if (contact.getContactDescription() != null &&
-                        !contact.getContactDescription().isEmpty()) {
+                    if (contact.getContactDescription() != null
+                            && !contact.getContactDescription().isEmpty()) {
                         label = contact.getContactDescription();
                     }
                 }
@@ -395,11 +412,8 @@ public class ResourceManagementServiceImpl
             if (req.getMessageDescription() != null) {
                 msgDesc = req.getMessageDescription().toString();
             }
-            incidentRef = digestIncidentInformation(digest,
-                req.getIncidentInformationArray(0),
-                msgDesc,
-                REQUEST_RESOURCE_PRODUCT_TYPE,
-                label);
+            incidentRef = digestIncidentInformation(digest, req.getIncidentInformationArray(0),
+                    msgDesc, REQUEST_RESOURCE_PRODUCT_TYPE, label);
         }
 
         // List of all request events created from this RequestResource
@@ -411,11 +425,10 @@ public class ResourceManagementServiceImpl
         if (req.sizeOfResourceInformationArray() > 0) {
             // Need to use fqn here because EDXL-RM overloads the
             // ResourceInformation element name
-            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info : req.getResourceInformationArray()) {
-                EventRefType ref = digestRequestResourceInformation(digest,
-                    info,
-                    req.getOriginatingMessageID(),
-                    getRequestStatus(req));
+            for (x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation info : req
+                    .getResourceInformationArray()) {
+                EventRefType ref = digestRequestResourceInformation(digest, info,
+                        req.getOriginatingMessageID(), getRequestStatus(req));
                 requestEvents.addAll(ref.getRef());
                 LocationType destinationLocation = addDestinationLocation(info);
                 if (ref.getRef().size() > 0 && destinationLocation != null) {
@@ -423,8 +436,7 @@ public class ResourceManagementServiceImpl
                     if (incidentRef != null) {
                         // Assume first entry is the correct identifier string
                         digest.setOccursAt((String) incidentRef.getRef().get(0),
-                            destinationLocation.getId(),
-                            now);
+                                destinationLocation.getId(), now);
                     }
                 }
             }
@@ -442,16 +454,15 @@ public class ResourceManagementServiceImpl
         OrganizationType requesterOrganization = null;
         if (req.sizeOfContactInformationArray() > 0) {
             for (ContactInformationType contact : req.getContactInformationArray()) {
-                if (contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.REQUESTER &&
-                    contact.getContactLocation() != null) {
+                if (contact.getContactRole() == x0.oasisNamesTcEmergencyEDXLRM1.ContactRoleType.REQUESTER
+                        && contact.getContactLocation() != null) {
                     // Create a location element for the requester
                     requesterLocation = getLocationFromContactInformation(digest,
-                        contact.getContactLocation());
+                            contact.getContactLocation());
                     // Create an organization element for the requester
                     requesterOrganization = getOrganizationFromContactInformation(digest, contact);
-                    digest.setLocatedAt(requesterOrganization.getId(),
-                        requesterLocation.getId(),
-                        now);
+                    digest.setLocatedAt(requesterOrganization.getId(), requesterLocation.getId(),
+                            now);
                     // Create an InvolvedIn relationship to each request event
                     for (String eventId : requestEvents) {
                         digest.setInvolvedIn(requesterOrganization.getId(), eventId, now);
@@ -464,10 +475,8 @@ public class ResourceManagementServiceImpl
         return digest.getDigest();
     }
 
-    private SimplePropertyType createSimpleProperty(String codespace,
-                                                    String code,
-                                                    String label,
-                                                    String value) {
+    private SimplePropertyType createSimpleProperty(String codespace, String code, String label,
+            String value) {
 
         SimplePropertyType property = SimplePropertyType.Factory.newInstance();
         if (codespace != null) {
@@ -491,14 +500,16 @@ public class ResourceManagementServiceImpl
         // country codes should be ISO 3166-1
         // (http://www.iso.org/iso/english_country_names_and_code_elements)
         if (address.getCountry() != null && address.getCountry().sizeOfNameElementArray() > 0) {
-            CompoundCountryCodeIdentifierType countryCode = CompoundCountryCodeIdentifierType.Factory.newInstance();
+            CompoundCountryCodeIdentifierType countryCode = CompoundCountryCodeIdentifierType.Factory
+                    .newInstance();
             countryCode.setValue(address.getCountry().getNameElementArray(0).getNameCode());
             countryCode.setQualifier(address.getCountry().getNameElementArray(0).getNameCodeType());
             postalAddress.setCountryCode(countryCode);
         }
-        if (address.getAdministrativeArea() != null &&
-            address.getAdministrativeArea().sizeOfNameElementArray() > 0) {
-            postalAddress.setState(address.getAdministrativeArea().getNameElementArray(0).getNameCode());
+        if (address.getAdministrativeArea() != null
+                && address.getAdministrativeArea().sizeOfNameElementArray() > 0) {
+            postalAddress.setState(address.getAdministrativeArea().getNameElementArray(0)
+                    .getNameCode());
         }
         if (address.getLocality() != null && address.getLocality().sizeOfNameElementArray() > 0) {
             postalAddress.setCity(address.getLocality().getNameElementArray(0).getStringValue());
@@ -509,21 +520,22 @@ public class ResourceManagementServiceImpl
                 number = address.getThoroughfare().getNumberArray(0).getStringValue() + " ";
             }
             if (address.getThoroughfare().sizeOfNameElementArray() > 0) {
-                postalAddress.addNewStreet().setStringValue(number +
-                                                            address.getThoroughfare().getNameElementArray(0).getStringValue());
+                postalAddress.addNewStreet().setStringValue(
+                        number + address.getThoroughfare().getNameElementArray(0).getStringValue());
             }
         }
         if (address.getPostCode() != null && address.getPostCode().sizeOfIdentifierArray() > 0) {
-            postalAddress.setPostalCode(address.getPostCode().getIdentifierArray(0).getStringValue());
+            postalAddress.setPostalCode(address.getPostCode().getIdentifierArray(0)
+                    .getStringValue());
         }
 
         return postalAddress;
     }
 
-    private EntityRefType digestCommitResourceInformation(EMDigestHelper digest,
-                                                          x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation resourceInfo,
-                                                          String originatingMessageID,
-                                                          String status) {
+    private EntityRefType digestCommitResourceInformation(
+            EMDigestHelper digest,
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation resourceInfo,
+            String originatingMessageID, String status) {
 
         // set the entity
         EntityType entity = EntityType.Factory.newInstance();
@@ -563,20 +575,15 @@ public class ResourceManagementServiceImpl
     }
 
     private EventRefType digestIncidentInformation(EMDigestHelper digest,
-                                                   IncidentInformationType incidentInfo,
-                                                   String msgDesc,
-                                                   String RMType,
-                                                   String label) {
+            IncidentInformationType incidentInfo, String msgDesc, String RMType, String label) {
 
         // set the event
         EventType event = EventType.Factory.newInstance();
         event.setId(incidentInfo.getIncidentID());
 
         // Add properties
-        SimplePropertyType property = createSimpleProperty(UICDS_EVENT_CODESPACE,
-            "Incident",
-            "Type",
-            RMType);
+        SimplePropertyType property = createSimpleProperty(UICDS_EVENT_CODESPACE, "Incident",
+                "Type", RMType);
 
         String descriptor = msgDesc;
         if (descriptor == null || descriptor.isEmpty()) {
@@ -590,12 +597,8 @@ public class ResourceManagementServiceImpl
         String[] codespace = new String[0];
         ContentMetadataType metadata = null;
 
-        digest.setEvent(incidentInfo.getIncidentID(),
-            descriptor,
-            identifier,
-            codespace,
-            metadata,
-            property);
+        digest.setEvent(incidentInfo.getIncidentID(), descriptor, identifier, codespace, metadata,
+                property);
 
         WhatType ucoreWhat = WhatType.Factory.newInstance();
         ucoreWhat.setCodespace(InfrastructureNamespaces.NS_UCORE_CODESPACE);
@@ -610,10 +613,10 @@ public class ResourceManagementServiceImpl
         return ref;
     }
 
-    private EventRefType digestRequestResourceInformation(EMDigestHelper digest,
-                                                          x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation resourceInfo,
-                                                          String originatingMessageID,
-                                                          String status) {
+    private EventRefType digestRequestResourceInformation(
+            EMDigestHelper digest,
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.RequestResourceDocument.RequestResource.ResourceInformation resourceInfo,
+            String originatingMessageID, String status) {
 
         // set the event
         EventType event = EventType.Factory.newInstance();
@@ -654,48 +657,58 @@ public class ResourceManagementServiceImpl
     /**
      * Parse the content of the edxl message, determine the type of request, process the request
      * appropriately and send the message to each core that has a user in an explictAddress
-     * 
-     * @param edxl the edxl
-     * 
+     *
+     * @param edxl
+     *            the edxl
+     *
      * @return the edxl de response document
-     * 
-     * @throws IllegalArgumentException the illegal argument exception
-     * @throws EmptyCoreNameListException the empty core name list exception
-     * @throws SendMessageErrorException the send message error exception
-     * @throws LocalCoreNotOnlineException the local core not online exception
+     *
+     * @throws IllegalArgumentException
+     *             the illegal argument exception
+     * @throws EmptyCoreNameListException
+     *             the empty core name list exception
+     * @throws SendMessageErrorException
+     *             the send message error exception
+     * @throws LocalCoreNotOnlineException
+     *             the local core not online exception
      * @throws NoShareRuleInAgreementException
      * @throws NoShareAgreementException
      * @ssdd
      */
     @Override
     public EdxlDeResponseDocument edxldeRequest(EDXLDistribution edxl)
-        throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
-        LocalCoreNotOnlineException, NoShareAgreementException, NoShareRuleInAgreementException {
+            throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
+            LocalCoreNotOnlineException, NoShareAgreementException, NoShareRuleInAgreementException {
 
         EdxlDeResponseDocument response = EdxlDeResponseDocument.Factory.newInstance();
         response.addNewEdxlDeResponse();
 
         // Check if we have the content we want else return null
-        if (edxl.sizeOfContentObjectArray() > 0 &&
-            edxl.getContentObjectArray(0).getXmlContent() != null &&
-            edxl.getContentObjectArray(0).getXmlContent().sizeOfEmbeddedXMLContentArray() > 0) {
+        if (edxl.sizeOfContentObjectArray() > 0
+                && edxl.getContentObjectArray(0).getXmlContent() != null
+                && edxl.getContentObjectArray(0).getXmlContent().sizeOfEmbeddedXMLContentArray() > 0) {
 
             // Determine what type of RM message is in the embedded xml content
-            XmlCursor c = edxl.getContentObjectArray(0).getXmlContent().getEmbeddedXMLContentArray(0).newCursor();
+            XmlCursor c = edxl.getContentObjectArray(0).getXmlContent()
+                    .getEmbeddedXMLContentArray(0).newCursor();
             if (c.toFirstChild()) {
                 if (c.getObject().schemaType().getOuterType().getDocumentElementName() == REQUEST_RESOURCE_QNAME) {
                     log.info("Processing: " + REQUEST_RESOURCE_QNAME);
                     RequestResource r = (RequestResource) c.getObject();
-                    RequestResourceDocument requestDocument = RequestResourceDocument.Factory.newInstance();
+                    RequestResourceDocument requestDocument = RequestResourceDocument.Factory
+                            .newInstance();
                     requestDocument.addNewRequestResource().set(r);
-                    response.getEdxlDeResponse().setDigest(processRequestResource(requestDocument).getDigest());
+                    response.getEdxlDeResponse().setDigest(
+                            processRequestResource(requestDocument).getDigest());
                     response.getEdxlDeResponse().setErrorExists(false);
                 } else if (c.getObject().schemaType().getOuterType().getDocumentElementName() == COMMIT_RESOURCE_QNAME) {
                     log.info("Processing: " + COMMIT_RESOURCE_QNAME);
                     CommitResource r = (CommitResource) c.getObject();
-                    CommitResourceDocument commitDocument = CommitResourceDocument.Factory.newInstance();
+                    CommitResourceDocument commitDocument = CommitResourceDocument.Factory
+                            .newInstance();
                     commitDocument.addNewCommitResource().set(r);
-                    response.getEdxlDeResponse().setDigest(processCommitResource(commitDocument).getDigest());
+                    response.getEdxlDeResponse().setDigest(
+                            processCommitResource(commitDocument).getDigest());
                     response.getEdxlDeResponse().setErrorExists(false);
 
                 }
@@ -715,13 +728,15 @@ public class ResourceManagementServiceImpl
         }
     }
 
-    private String getCommitStatusProperty(x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
+    private String getCommitStatusProperty(
+            x0Msg.oasisNamesTcEmergencyEDXLRM1.CommitResourceDocument.CommitResource.ResourceInformation info) {
 
         if (info.getResponseInformation().getResponseType().equals(ResponseTypeType.ACCEPT)) {
             return "Comitted";
         } else if (info.getResponseInformation().getResponseType().equals(ResponseTypeType.DECLINE)) {
             return "Declined";
-        } else if (info.getResponseInformation().getResponseType().equals(ResponseTypeType.PROVISIONAL)) {
+        } else if (info.getResponseInformation().getResponseType()
+                .equals(ResponseTypeType.PROVISIONAL)) {
             return "Provisional";
         }
         return "Unknown";
@@ -729,9 +744,10 @@ public class ResourceManagementServiceImpl
 
     /**
      * Gets the committed resources workProduct array.
-     * 
-     * @param incidentID the incident id
-     * 
+     *
+     * @param incidentID
+     *            the incident id
+     *
      * @return the committed resources
      * @ssdd
      */
@@ -742,9 +758,8 @@ public class ResourceManagementServiceImpl
          * Get a list of WP by Type from Work Product
          */
         try {
-            List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(COMMIT_RESOURCE_PRODUCT_TYPE,
-                null,
-                null);
+            List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(
+                    COMMIT_RESOURCE_PRODUCT_TYPE, null, null);
             if (listOfProducts != null && listOfProducts.size() > 0) {
                 WorkProduct[] products = new WorkProduct[listOfProducts.size()];
                 return listOfProducts.toArray(products);
@@ -774,7 +789,7 @@ public class ResourceManagementServiceImpl
     }
 
     private LocationType getLocationFromContactInformation(EMDigestHelper digest,
-                                                           x0.oasisNamesTcEmergencyEDXLRM1.LocationType location) {
+            x0.oasisNamesTcEmergencyEDXLRM1.LocationType location) {
 
         LocationType digestLoc = LocationType.Factory.newInstance();
         digestLoc.setId(UUIDUtil.getID("Location"));
@@ -789,7 +804,11 @@ public class ResourceManagementServiceImpl
                 PointDocument point = PointDocument.Factory.newInstance();
                 point.addNewPoint().addNewPoint();
                 point.getPoint().getPoint().setId(UUIDUtil.getID("point"));
-                point.getPoint().getPoint().addNewPos().setStringValue(location.getTargetArea().getPoint().getPos().getStringValue());
+                point.getPoint()
+                        .getPoint()
+                        .addNewPos()
+                        .setStringValue(
+                                location.getTargetArea().getPoint().getPos().getStringValue());
                 point.getPoint().getPoint().getPos().setSrsName(EMGeoUtil.EPSG4326);
                 digestLoc.addNewGeoLocation().set(point);
             }
@@ -823,7 +842,8 @@ public class ResourceManagementServiceImpl
             if (edxlDoc.getEDXLDistribution().sizeOfContentObjectArray() > 0) {
                 body.append("Content element descriptions: ");
                 body.append(NEW_LINE);
-                for (ContentObjectType content : edxlDoc.getEDXLDistribution().getContentObjectArray()) {
+                for (ContentObjectType content : edxlDoc.getEDXLDistribution()
+                        .getContentObjectArray()) {
                     if (content.getContentDescription() != null) {
                         body.append("Content Description: ");
                         body.append(content.getContentDescription());
@@ -841,7 +861,7 @@ public class ResourceManagementServiceImpl
     }
 
     private OrganizationType getOrganizationFromContactInformation(EMDigestHelper digest,
-                                                                   ContactInformationType contact) {
+            ContactInformationType contact) {
 
         OrganizationType org = OrganizationType.Factory.newInstance();
         String orgID = UUIDUtil.getID("Organization");
@@ -867,7 +887,8 @@ public class ResourceManagementServiceImpl
         if (edxl.sizeOfExplicitAddressArray() > 0) {
             // Find core name for each explicit address.
             for (ValueSchemeType type : edxl.getExplicitAddressArray()) {
-                if (type.getExplicitAddressScheme().equals(CommunicationsService.UICDSCoreAddressScheme)) {
+                if (type.getExplicitAddressScheme().equals(
+                        CommunicationsService.UICDSCoreAddressScheme)) {
                     for (String address : type.getExplicitAddressValueArray()) {
                         cores.add(address);
                     }
@@ -879,9 +900,10 @@ public class ResourceManagementServiceImpl
 
     /**
      * Gets the requested resources workProduct array.
-     * 
-     * @param incidentID the incident id
-     * 
+     *
+     * @param incidentID
+     *            the incident id
+     *
      * @return the requested resources
      * @ssdd
      */
@@ -892,9 +914,8 @@ public class ResourceManagementServiceImpl
          * Get a list of WP by Type from Work Product
          */
         try {
-            List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(REQUEST_RESOURCE_PRODUCT_TYPE,
-                null,
-                null);
+            List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(
+                    REQUEST_RESOURCE_PRODUCT_TYPE, null, null);
             if (listOfProducts != null && listOfProducts.size() > 0) {
                 WorkProduct[] products = new WorkProduct[listOfProducts.size()];
                 return listOfProducts.toArray(products);
@@ -924,8 +945,8 @@ public class ResourceManagementServiceImpl
         sb.append("-");
         sb.append(resourceInfo.getResourceInfoElementID());
         sb.append("-");
-        if (resourceInfo.getResource() != null &&
-            resourceInfo.getResource().getResourceID() != null) {
+        if (resourceInfo.getResource() != null
+                && resourceInfo.getResource().getResourceID() != null) {
             sb.append(resourceInfo.getResource().getResourceID());
         }
         return sb.toString();
@@ -978,8 +999,8 @@ public class ResourceManagementServiceImpl
     }
 
     private DigestDocument processCommitResource(CommitResourceDocument commit)
-        throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
-        LocalCoreNotOnlineException {
+            throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
+            LocalCoreNotOnlineException {
 
         // Create the work product id from the message identifiers
         StringBuffer wpIDBuffer = new StringBuffer();
@@ -993,38 +1014,39 @@ public class ResourceManagementServiceImpl
         workProduct.setProduct(commit);
 
         if (commit.getCommitResource().sizeOfIncidentInformationArray() > 0) {
-            workProduct.associateInterestGroup(commit.getCommitResource().getIncidentInformationArray(0).getIncidentID());
+            workProduct.associateInterestGroup(commit.getCommitResource()
+                    .getIncidentInformationArray(0).getIncidentID());
         }
 
-        //System.out.println("commit resource WP="+commit);
+        // System.out.println("commit resource WP="+commit);
 
         // Create the digest using XSLT
-        //if (xsltFilePath == null) 
+        // if (xsltFilePath == null)
         xsltFilePath = "xslt/CommitResourceDigest.xsl";
         if (iconConfigXmlFilePath == null) {
             iconConfigXmlFilePath = "xml/types_icons.xml";
         }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
         DigestDocument digestDoc = digestGenerator.createDigest(commit);
-        //System.out.println("CommitResourceDigest="+digestDoc);
+        // System.out.println("CommitResourceDigest="+digestDoc);
         workProduct.setDigest(digestDoc);
 
         // create the digest
-        //DigestDocument digest = createCommitResourceDigest(commit);
-        //System.out.println("CommitResourceDigest="+digest);
-        //workProduct.setDigest(digest);
+        // DigestDocument digest = createCommitResourceDigest(commit);
+        // System.out.println("CommitResourceDigest="+digest);
+        // workProduct.setDigest(digest);
         // System.out.println(WorkProductHelper.toWorkProductDocument(workProduct));
 
         // publish the work product
         ProductPublicationStatus status = workProductService.publishProduct(workProduct);
 
         return digestDoc;
-        //return digest;
+        // return digest;
     }
 
     private DigestDocument processRequestResource(RequestResourceDocument request)
-        throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
-        LocalCoreNotOnlineException {
+            throws IllegalArgumentException, EmptyCoreNameListException, SendMessageErrorException,
+            LocalCoreNotOnlineException {
 
         // Create the work product id from the message identifiers
         StringBuffer wpIDBuffer = new StringBuffer();
@@ -1038,11 +1060,12 @@ public class ResourceManagementServiceImpl
         workProduct.setProduct(request);
 
         if (request.getRequestResource().sizeOfIncidentInformationArray() > 0) {
-            workProduct.associateInterestGroup(request.getRequestResource().getIncidentInformationArray(0).getIncidentID());
+            workProduct.associateInterestGroup(request.getRequestResource()
+                    .getIncidentInformationArray(0).getIncidentID());
         }
 
         // Create the digest using XSLT
-        //if (xsltFilePath == null) 
+        // if (xsltFilePath == null)
         xsltFilePath = "xslt/RequestResourceDigest.xsl";
         if (iconConfigXmlFilePath == null) {
             iconConfigXmlFilePath = "xml/types_icons.xml";
@@ -1051,40 +1074,43 @@ public class ResourceManagementServiceImpl
         DigestDocument digestDoc = digestGenerator.createDigest(request);
         workProduct.setDigest(digestDoc);
 
-        //create the digest
-        //DigestDocument digest = createRequestResourceDigest(request);
-        //workProduct.setDigest(digest);
+        // create the digest
+        // DigestDocument digest = createRequestResourceDigest(request);
+        // workProduct.setDigest(digest);
         // System.out.println(WorkProductHelper.toWorkProductDocument(workProduct));
 
         // publish the work product
         ProductPublicationStatus status = workProductService.publishProduct(workProduct);
 
-        //return digest;
+        // return digest;
         return digestDoc;
     }
 
     /**
      * Resource message notification handler.
-     * 
-     * @param message the message
+     *
+     * @param message
+     *            the message
      * @ssdd
      */
     @Override
     public void resourceMessageNotificationHandler(Core2CoreMessage message) {
 
-        log.debug("resourceMessageNotificationHandler: received messagefrom " +
-                  message.getFromCore());
+        log.debug("resourceMessageNotificationHandler: received messagefrom "
+                + message.getFromCore());
         // =[" + message.getMessage()+ "]
 
         XmlObject xmlObj;
         try {
 
-            EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.parse(message.getMessage());
+            EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.parse(message
+                    .getMessage());
 
             if (edxlDoc.getEDXLDistribution().sizeOfExplicitAddressArray() > 0) {
                 // Find core name for each explicit address.
                 for (ValueSchemeType type : edxlDoc.getEDXLDistribution().getExplicitAddressArray()) {
-                    if (type.getExplicitAddressScheme().equals(CommunicationsService.UICDSExplicitAddressScheme)) {
+                    if (type.getExplicitAddressScheme().equals(
+                            CommunicationsService.UICDSExplicitAddressScheme)) {
                         for (String address : type.getExplicitAddressValueArray()) {
                             xmlObj = XmlObject.Factory.parse(edxlDoc.toString());
                             // log.debug("broadcastMessageNotificationHandler: sending notification ["
@@ -1102,8 +1128,8 @@ public class ResourceManagementServiceImpl
     }
 
     private void sendEdxlDeMessage(EDXLDistribution edxl) throws IllegalArgumentException,
-        EmptyCoreNameListException, SendMessageErrorException, LocalCoreNotOnlineException,
-        NoShareAgreementException, NoShareRuleInAgreementException {
+            EmptyCoreNameListException, SendMessageErrorException, LocalCoreNotOnlineException,
+            NoShareAgreementException, NoShareRuleInAgreementException {
 
         HashSet<String> cores = BroadcastUtil.getCoreList(edxl);
         HashSet<String> jids = BroadcastUtil.getJidList(edxl);
@@ -1117,8 +1143,8 @@ public class ResourceManagementServiceImpl
             EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.newInstance();
             edxlDoc.setEDXLDistribution(edxl);
 
-            //log.error("in sendEdxlDeMessage() edxlDoc=" + edxlDoc.toString());
-            //log.error("in sendEdxlDeMessage() edxl=" + edxl.toString());
+            // log.error("in sendEdxlDeMessage() edxlDoc=" + edxlDoc.toString());
+            // log.error("in sendEdxlDeMessage() edxl=" + edxl.toString());
 
             // Send the message to the cores as a Broadcast Service message
             errorException = sendMessageToCores(cores, errorException, edxlDoc.xmlText());
@@ -1143,37 +1169,36 @@ public class ResourceManagementServiceImpl
             m.set(xmlObj);
             messages.add(t);
 
-            NotificationMessageHolderType[] notification = new NotificationMessageHolderType[messages.size()];
+            NotificationMessageHolderType[] notification = new NotificationMessageHolderType[messages
+                    .size()];
 
             notification = messages.toArray(notification);
             log.debug("===> sending Core2Core message: array size=" + notification.length);
             notificationService.notify(UicdsStringUtil.getSubmitterResourceInstanceName(address),
-                notification);
+                    notification);
         } catch (Throwable e) {
-            log.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to " +
-                      address);
+            log.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to "
+                    + address);
             e.printStackTrace();
         }
     }
 
     private SendMessageErrorException sendMessageToCores(HashSet<String> cores,
-                                                         SendMessageErrorException errorException,
-                                                         String msgStr) {
+            SendMessageErrorException errorException, String msgStr) {
 
         for (String core : cores) {
             log.info("sendMessage to: " + core);
             try {
 
                 communicationsService.sendMessage(msgStr,
-                    CommunicationsService.CORE2CORE_MESSAGE_TYPE.RESOURCE_MESSAGE,
-                    core);
+                        CommunicationsService.CORE2CORE_MESSAGE_TYPE.RESOURCE_MESSAGE, core);
                 log.debug("called communicationsService.sendMessage");
             } catch (RemoteCoreUnknownException e1) {
                 errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNKNOWN);
+                        SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNKNOWN);
             } catch (RemoteCoreUnavailableException e2) {
                 errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNAVAILABLE);
+                        SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNAVAILABLE);
             } catch (LocalCoreNotOnlineException e) {
                 // TODO: this short circuit for the local core should be in the
                 // CommunicationService
@@ -1182,7 +1207,8 @@ public class ResourceManagementServiceImpl
 
                 message.setFromCore(core);
                 message.setToCore(core);
-                message.setMessageType(CommunicationsService.CORE2CORE_MESSAGE_TYPE.RESOURCE_MESSAGE.toString());
+                message.setMessageType(CommunicationsService.CORE2CORE_MESSAGE_TYPE.RESOURCE_MESSAGE
+                        .toString());
                 // Core2CoreMessageDocument doc =
                 // Core2CoreMessageDocument.Factory.newInstance();
                 // doc.addNewCore2CoreMessage().set(edxl);
@@ -1194,27 +1220,26 @@ public class ResourceManagementServiceImpl
                 // communicationsService.core2CoreMessageNotificationHandler(message);
             } catch (NoShareAgreementException e) {
                 errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.NO_SHARE_AGREEMENT);
+                        SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.NO_SHARE_AGREEMENT);
             } catch (NoShareRuleInAgreementException e) {
-                errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.NO_SHARE_RULE_IN_AGREEMENT);
+                errorException
+                        .getErrors()
+                        .put(core,
+                                SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.NO_SHARE_RULE_IN_AGREEMENT);
             }
         }
         return errorException;
     }
 
     private SendMessageErrorException sendXMPPMessage(HashSet<String> jids,
-                                                      SendMessageErrorException errorException,
-                                                      EDXLDistributionDocument edxlDoc)
-        throws NoShareAgreementException, NoShareRuleInAgreementException,
-        LocalCoreNotOnlineException {
+            SendMessageErrorException errorException, EDXLDistributionDocument edxlDoc)
+            throws NoShareAgreementException, NoShareRuleInAgreementException,
+            LocalCoreNotOnlineException {
 
         for (String jid : jids) {
             // System.out.println("sending to " + jid);
-            communicationsService.sendXMPPMessage(getMessageBody(edxlDoc),
-                null,
-                edxlDoc.xmlText(),
-                jid);
+            communicationsService.sendXMPPMessage(getMessageBody(edxlDoc), null, edxlDoc.xmlText(),
+                    jid);
         }
         return errorException;
     }
@@ -1230,7 +1255,8 @@ public class ResourceManagementServiceImpl
     }
 
     /**
-     * @param getIconConfigXmlFilePath to set
+     * @param getIconConfigXmlFilePath
+     *            to set
      */
     public void setIconConfigXmlFilePath(String iconConfigXmlFilePath) {
 
@@ -1248,7 +1274,8 @@ public class ResourceManagementServiceImpl
     }
 
     /**
-     * @param xsltFilePath the xsltFilePath to set
+     * @param xsltFilePath
+     *            the xsltFilePath to set
      */
     public void setXsltFilePath(String xsltFilePath) {
 
@@ -1261,10 +1288,8 @@ public class ResourceManagementServiceImpl
         WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(COMMIT_RESOURCE_PRODUCT_TYPE);
         typeList.addProductType(REQUEST_RESOURCE_PRODUCT_TYPE);
-        directoryService.registerUICDSService(NS_ResourceManagementService,
-            RESOURCE_SERVICE_NAME,
-            typeList,
-            typeList);
+        directoryService.registerUICDSService(NS_ResourceManagementService, RESOURCE_SERVICE_NAME,
+                typeList, typeList);
     }
 
 }

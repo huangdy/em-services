@@ -87,14 +87,13 @@ import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * The MapService implementation.
- * 
+ *
  * @author Patrick Neal - Image Matters, LLC
  * @created: Nov 7, 2008
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class MapServiceImpl
-    implements MapService, ServiceNamespaces {
+public class MapServiceImpl implements MapService, ServiceNamespaces {
 
     Logger log = LoggerFactory.getLogger(MapServiceImpl.class);
 
@@ -141,16 +140,14 @@ public class MapServiceImpl
         }
 
         XmlUtil.substitute(digest.getDigest().addNewThingAbstract(),
-            InfrastructureNamespaces.NS_UCORE,
-            DigestConstant.S_Collection,
-            type,
-            colType);
+                InfrastructureNamespaces.NS_UCORE, DigestConstant.S_Collection, type, colType);
     }
 
     /**
      * Converts a byte array representation of XML into a w3c DOM node
-     * 
-     * @param bytes byte[]
+     *
+     * @param bytes
+     *            byte[]
      * @return Node
      * @throws Exception
      */
@@ -165,8 +162,9 @@ public class MapServiceImpl
 
     /**
      * Converts a W3C DOM node into a byte array for storage within a WorkProduct
-     * 
-     * @param node Node
+     *
+     * @param node
+     *            Node
      * @return byte[]
      * @throws Exception
      */
@@ -196,9 +194,11 @@ public class MapServiceImpl
 
     /**
      * Creates a new Map for the Incident with the specified incident identifier
-     * 
-     * @param incidentId String
-     * @param geometry Envelope
+     *
+     * @param incidentId
+     *            String
+     * @param geometry
+     *            Envelope
      * @return Node w3c DOM Node representing the XML-encoded map
      * @throws Exception
      */
@@ -213,41 +213,25 @@ public class MapServiceImpl
         context.getKeywords().add("UICDS");
         context.setWindow(new Rectangle(600, 500));
 
-        Envelope extent = geometry == null ? new Envelope(-125.0, -66.0, 20.0, 50.0)
-                                          : geometry.getEnvelopeInternal();
+        Envelope extent = geometry == null ? new Envelope(-125.0, -66.0, 20.0, 50.0) : geometry
+                .getEnvelopeInternal();
         context.setBoundingBox(extent);
 
         // determine url to access features via wms controller
         String url = configurationService.getRestBaseURL() + incidentId + "/features?";
 
         // base map layer
-        Server server = new Server(new URI("http://labs.metacarta.com/wms/vmap0"),
-                                   "OGC:WMS",
-                                   "1.1.0",
-                                   "Metacarta");
-        context.getLayers().add(new Layer(server,
-                                          "basic",
-                                          "Base Map",
-                                          "",
-                                          null,
-                                          null,
-                                          "EPSG:4326",
-                                          false,
-                                          false,
-                                          null));
+        Server server = new Server(new URI("http://labs.metacarta.com/wms/vmap0"), "OGC:WMS",
+                "1.1.0", "Metacarta");
+        context.getLayers().add(
+                new Layer(server, "basic", "Base Map", "", null, null, "EPSG:4326", false, false,
+                        null));
 
         // features layer
         server = new Server(new URI(url), "OGC:WMS", "1.1.0", "UICDS Core Map Service");
-        context.getLayers().add(new Layer(server,
-                                          "",
-                                          "Incident Features",
-                                          "",
-                                          null,
-                                          null,
-                                          "EPSG:4326",
-                                          false,
-                                          false,
-                                          null));
+        context.getLayers().add(
+                new Layer(server, "", "Incident Features", "", null, null, "EPSG:4326", false,
+                        false, null));
 
         // marshal map out to bytes
         MarshalContext ctx = new MarshalContext(WmsModule.class);
@@ -273,11 +257,14 @@ public class MapServiceImpl
 
     /**
      * Creates the layer.
-     * 
-     * @param incidentId the incident id
-     * @param layer the layer
+     *
+     * @param incidentId
+     *            the incident id
+     * @param layer
+     *            the layer
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -314,11 +301,14 @@ public class MapServiceImpl
 
     /**
      * Creates the map.
-     * 
-     * @param incidentId the incident id
-     * @param map the map
+     *
+     * @param incidentId
+     *            the incident id
+     * @param map
+     *            the map
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -359,11 +349,14 @@ public class MapServiceImpl
 
     /**
      * Delete layer.
-     * 
-     * @param incidentId the incident id
-     * @param layerId the layer id
+     *
+     * @param incidentId
+     *            the incident id
+     * @param layerId
+     *            the layer id
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -381,22 +374,27 @@ public class MapServiceImpl
 
         // if it's still not closed, we need to close it first
         if (layer.isActive() == true) {
-            status = getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(layer));
+            status = getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(layer));
             if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
                 return status;
             }
         }
 
-        return getWorkProductService().archiveProduct(WorkProductHelper.getWorkProductIdentification(layer));
+        return getWorkProductService().archiveProduct(
+                WorkProductHelper.getWorkProductIdentification(layer));
     }
 
     /**
      * Delete map.
-     * 
-     * @param incidentId the incident id
-     * @param mapId the map id
+     *
+     * @param incidentId
+     *            the incident id
+     * @param mapId
+     *            the map id
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -414,13 +412,15 @@ public class MapServiceImpl
 
         // if it's still not closed, we need to close it first
         if (map.isActive() == true) {
-            status = getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(map));
+            status = getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(map));
             if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
                 return status;
             }
         }
 
-        return getWorkProductService().archiveProduct(WorkProductHelper.getWorkProductIdentification(map));
+        return getWorkProductService().archiveProduct(
+                WorkProductHelper.getWorkProductIdentification(map));
     }
 
     private Node fixNamespace(Node el) {
@@ -469,10 +469,12 @@ public class MapServiceImpl
 
     /**
      * Gets the layer.
-     * 
-     * @param packageId the package id
+     *
+     * @param packageId
+     *            the package id
      * @return the layer
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -487,11 +489,14 @@ public class MapServiceImpl
 
     /**
      * Gets the layer.
-     * 
-     * @param incidentId the incident id
-     * @param layerId the layer id
+     *
+     * @param incidentId
+     *            the incident id
+     * @param layerId
+     *            the layer id
      * @return the layer
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -509,10 +514,12 @@ public class MapServiceImpl
 
     /**
      * Gets the layers.
-     * 
-     * @param incidentId the incident id
+     *
+     * @param incidentId
+     *            the incident id
      * @return the layers
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -520,16 +527,18 @@ public class MapServiceImpl
 
         // log.debug("Retrieving layers for incident '" + incidentId + "'");
         List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(incidentId,
-            LayerType);
+                LayerType);
         return products;
     }
 
     /**
      * Gets the layer.
-     * 
-     * @param packageId the package id
+     *
+     * @param packageId
+     *            the package id
      * @return the layer
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -544,11 +553,14 @@ public class MapServiceImpl
 
     /**
      * Gets the layer.
-     * 
-     * @param incidentId the incident id
-     * @param layerId the layer id
+     *
+     * @param incidentId
+     *            the incident id
+     * @param layerId
+     *            the layer id
      * @return the layer
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -559,10 +571,12 @@ public class MapServiceImpl
 
     /**
      * Gets the map.
-     * 
-     * @param packageId the package id
+     *
+     * @param packageId
+     *            the package id
      * @return the map
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -584,10 +598,12 @@ public class MapServiceImpl
 
     /**
      * Gets the map.
-     * 
-     * @param workProductId the work product id
+     *
+     * @param workProductId
+     *            the work product id
      * @return the map
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -605,10 +621,12 @@ public class MapServiceImpl
 
     /**
      * Gets the maps.
-     * 
-     * @param incidentId the incident id
+     *
+     * @param incidentId
+     *            the incident id
      * @return the maps
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -616,16 +634,18 @@ public class MapServiceImpl
 
         // log.debug("Retrieving maps for incident '" + incidentId + "'");
         List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(incidentId,
-            MapType);
+                MapType);
         return products;
     }
 
     /**
      * Gets the map.
-     * 
-     * @param packageId the package id
+     *
+     * @param packageId
+     *            the package id
      * @return the map
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -640,10 +660,12 @@ public class MapServiceImpl
 
     /**
      * Gets the map.
-     * 
-     * @param workProductId the work product id
+     *
+     * @param workProductId
+     *            the work product id
      * @return the map
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -654,7 +676,7 @@ public class MapServiceImpl
 
     /**
      * Gets the shapefile ingester.
-     * 
+     *
      * @return the shapefile ingester
      * @ssdd
      */
@@ -686,19 +708,21 @@ public class MapServiceImpl
 
     /**
      * Handles notifications when new Incidents have been created in the system.
-     * 
-     * @param notification IncidentStateNotificationMessage
+     *
+     * @param notification
+     *            IncidentStateNotificationMessage
      * @ssdd
      */
     @Override
     public void handleIncidentState(IncidentStateNotificationMessage message) {
 
-        if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW) ||
-            message.getState().equals(InterestGroupStateNotificationMessage.State.JOIN)) {
+        if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW)
+                || message.getState().equals(InterestGroupStateNotificationMessage.State.JOIN)) {
             String incidentId = message.getIncidentInfo().getId();
 
             // locate the work product for the new incident
-            String wpId = message.getIncidentInfo().getWorkProductIdentification().getIdentifier().getStringValue();
+            String wpId = message.getIncidentInfo().getWorkProductIdentification().getIdentifier()
+                    .getStringValue();
             WorkProduct product = getWorkProductService().getProduct(wpId);
             if (product == null) {
                 log.warn("Failed to retrieve work product for newly created incident");
@@ -742,8 +766,9 @@ public class MapServiceImpl
 
     /**
      * Parses a coordinate from an incident's XML representation
-     * 
-     * @param parent Element
+     *
+     * @param parent
+     *            Element
      * @return Coordinate
      */
     private Coordinate parseCoordinateUsingDOM(Element parent) {
@@ -754,7 +779,8 @@ public class MapServiceImpl
         }
 
         Element lon = DOMUtils.getChild(coord, "GeographicCoordinateLongitude");
-        Double lonDegree = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeDegreeValue"), null);
+        Double lonDegree = Coerce
+                .toDouble(DOMUtils.getChildText(lon, "LongitudeDegreeValue"), null);
         Double lonMinute = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeMinuteValue"), 0.0);
         Double lonSecond = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeSecondValue"), 0.0);
 
@@ -766,7 +792,7 @@ public class MapServiceImpl
         // didn't specify coordinates properly
         if (lonDegree == null || latDegree == null) {
             log.warn("Coordinates were not specified properly in Incident work product, "
-                     + "unable to determine location for default map");
+                    + "unable to determine location for default map");
             return null;
         }
 
@@ -781,7 +807,8 @@ public class MapServiceImpl
     }
 
     /**
-     * @param incident UICDSIncidentType
+     * @param incident
+     *            UICDSIncidentType
      * @return Geometry or null
      */
     protected Geometry parseGeometry(UICDSIncidentType incident) {
@@ -804,8 +831,9 @@ public class MapServiceImpl
 
     /**
      * Parses the geometry of the incident by traversing it's xml representation
-     * 
-     * @param area AreaType
+     *
+     * @param area
+     *            AreaType
      * @return Geometry or null
      * @throws Exception
      */
@@ -845,7 +873,8 @@ public class MapServiceImpl
             return null;
         }
 
-        List<Element> polyCoords = DOMUtils.getChildren(areaNode, "AreaPolygonGeographicCoordinate");
+        List<Element> polyCoords = DOMUtils
+                .getChildren(areaNode, "AreaPolygonGeographicCoordinate");
         if (!polyCoords.isEmpty()) {
 
             int i = 0;
@@ -876,10 +905,8 @@ public class MapServiceImpl
             if (circle != null) {
                 Element center = DOMUtils.getChild(circle, "CircularRegionCenterCoordinate");
                 Element rad = DOMUtils.getChild(circle, "CircularRegionRadiusLengthMeasure");
-                String r = DOMUtils.getChildTextNS(rad,
-                    "http://niem.gov/niem/niem-core/2.0",
-                    "MeasurePointValue",
-                    "1.0");
+                String r = DOMUtils.getChildTextNS(rad, "http://niem.gov/niem/niem-core/2.0",
+                        "MeasurePointValue", "1.0");
                 Double radius = Coerce.toDouble(r, 1.0);
                 Coordinate coord = parseCoordinateUsingDOM(center);
                 if (coord != null) {
@@ -902,8 +929,9 @@ public class MapServiceImpl
     /**
      * Handles notifications when Work Products are changed. We're only interested in those of type
      * "Feature"
-     * 
-     * @param message ProductChangeNotificationMessage
+     *
+     * @param message
+     *            ProductChangeNotificationMessage
      * @ssdd
      */
     @Override
@@ -930,8 +958,9 @@ public class MapServiceImpl
 
     /**
      * Sets the shapefile ingester.
-     * 
-     * @param shapefileIngester the new shapefile ingester
+     *
+     * @param shapefileIngester
+     *            the new shapefile ingester
      * @ssdd
      */
     public void setShapefileIngester(ShapefileIngester shapefileIngester) {
@@ -952,16 +981,18 @@ public class MapServiceImpl
 
     /**
      * Creates a default Map for the specified Incident and stores it as a WorkProduct
-     * 
-     * @param incidentId String incident identifier (not work product identifier)
-     * @param incident UICDSIncidentType
-     * @param geometry Geometry spatial component of the incident
+     *
+     * @param incidentId
+     *            String incident identifier (not work product identifier)
+     * @param incident
+     *            UICDSIncidentType
+     * @param geometry
+     *            Geometry spatial component of the incident
      * @return status of the submit request
      * @ssdd
      */
     protected ProductPublicationStatus submitDefaultMap(String incidentId,
-                                                        UICDSIncidentType incident,
-                                                        Geometry geometry) {
+            UICDSIncidentType incident, Geometry geometry) {
 
         ProductPublicationStatus status = null;
         try {
@@ -977,8 +1008,8 @@ public class MapServiceImpl
                 // }
 
             } else {
-                log.warn("No area defined for incident " + incidentId +
-                         ", not creating default map");
+                log.warn("No area defined for incident " + incidentId
+                        + ", not creating default map");
             }
         } catch (Throwable t) {
             log.error("Error creating default map for new incident with id " + incidentId, t);
@@ -987,16 +1018,19 @@ public class MapServiceImpl
     }
 
     /**
-     * @param incidentId String identifier
-     * @param bytes byte array containing the shapefile
+     * @param incidentId
+     *            String identifier
+     * @param bytes
+     *            byte array containing the shapefile
      * @return collection of ProductPublicationStatus for the new work products
-     * @see com.leidos.xchangecore.core.em.service.MapService#submitShapefile(java.lang.String, byte[])
+     * @see com.leidos.xchangecore.core.em.service.MapService#submitShapefile(java.lang.String,
+     *      byte[])
      * @ssdd
      */
     @Override
     @SuppressWarnings("unchecked")
     public List<ProductPublicationStatus> submitShapefile(String incidentId, byte[] bytes)
-        throws Exception {
+            throws Exception {
 
         if (getShapefileIngester() == null) {
             log.warn("No Shapefile Ingester configured with MapService. Ignoring request");
@@ -1050,10 +1084,8 @@ public class MapServiceImpl
                     locationIds.add(location.getId());
                     gov.ucore.ucore.x20.LocationType l = (gov.ucore.ucore.x20.LocationType) location;
                     XmlUtil.substitute(productDigest.getDigest().addNewThingAbstract(),
-                        InfrastructureNamespaces.NS_UCORE,
-                        "Location",
-                        gov.ucore.ucore.x20.LocationType.type,
-                        l);
+                            InfrastructureNamespaces.NS_UCORE, "Location",
+                            gov.ucore.ucore.x20.LocationType.type, l);
                 }
             }
             WorkProductService wps = getWorkProductService();
@@ -1093,16 +1125,14 @@ public class MapServiceImpl
 
             DOMUtils.appendElementWithText(root, WMC.NAME, layerName);
             if (incidentId != null) {
-                DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features in Incident '" +
-                                                                incidentId + "'");
-                DOMUtils.appendElementWithText(root,
-                    WMC.ABSTRACT,
-                    "Shapefile Features for Incident '" + incidentId + "'");
+                DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features in Incident '"
+                        + incidentId + "'");
+                DOMUtils.appendElementWithText(root, WMC.ABSTRACT,
+                        "Shapefile Features for Incident '" + incidentId + "'");
             } else {
                 DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features");
-                DOMUtils.appendElementWithText(root,
-                    WMC.ABSTRACT,
-                    "Shapefile Features for Incident");
+                DOMUtils.appendElementWithText(root, WMC.ABSTRACT,
+                        "Shapefile Features for Incident");
             }
             DOMUtils.appendElementWithText(root, WMC.SRS, "EPSG:4326");
             ProductPublicationStatus layerStat = createLayer(incidentId, root);
@@ -1122,20 +1152,21 @@ public class MapServiceImpl
         WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(MapType);
         // log.info("systemInitializedHandler - register with DirectoryService");
-        getDirectoryService().registerUICDSService(NS_MapService,
-            MAP_SERVICE_NAME,
-            typeList,
-            typeList);
+        getDirectoryService().registerUICDSService(NS_MapService, MAP_SERVICE_NAME, typeList,
+                typeList);
         log.debug("systemInitializedHandler - started");
     }
 
     /**
      * Update layer.
-     * 
-     * @param pkgId the layer's work product identification
-     * @param layer the layer
+     *
+     * @param pkgId
+     *            the layer's work product identification
+     * @param layer
+     *            the layer
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override
@@ -1171,11 +1202,14 @@ public class MapServiceImpl
 
     /**
      * Update map.
-     * 
-     * @param packageIdNode the package id node
-     * @param map the map
+     *
+     * @param packageIdNode
+     *            the package id node
+     * @param map
+     *            the map
      * @return the product publication status
-     * @throws Exception the exception
+     * @throws Exception
+     *             the exception
      * @ssdd
      */
     @Override

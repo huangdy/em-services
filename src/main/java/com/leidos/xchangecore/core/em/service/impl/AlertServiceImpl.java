@@ -25,13 +25,12 @@ import com.saic.precis.x2009.x06.base.NamespaceMapType;
 
 /**
  * The AlertService implementation.
- * 
+ *
  * @since 1.0
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class AlertServiceImpl
-    implements AlertService, ServiceNamespaces {
+public class AlertServiceImpl implements AlertService, ServiceNamespaces {
 
     Logger log = LoggerFactory.getLogger(AlertServiceImpl.class);
 
@@ -41,8 +40,9 @@ public class AlertServiceImpl
 
     /**
      * Cancel alert deletes the work product identified by the workproduct id string
-     * 
-     * @param workProductId the work product id
+     *
+     * @param workProductId
+     *            the work product id
      * @return the product publication status
      * @ssdd
      */
@@ -64,21 +64,25 @@ public class AlertServiceImpl
 
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
-            status = getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(wp));
+            status = getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(wp));
             if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
                 return status;
             }
         }
 
-        return getWorkProductService().archiveProduct(WorkProductHelper.getWorkProductIdentification(wp));
+        return getWorkProductService().archiveProduct(
+                WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     /**
      * Creates a workproduct of alert type. Adds the supplied incident id to the set of associated
      * interest groups
-     * 
-     * @param incidentId the incident id
-     * @param alert the alert
+     *
+     * @param incidentId
+     *            the incident id
+     * @param alert
+     *            the alert
      * @return the product publication status
      * @ssdd
      */
@@ -158,7 +162,8 @@ public class AlertServiceImpl
 
     private WorkProduct findAlertWP(String alertID) {
 
-        List<WorkProduct> productList = getWorkProductService().listByProductType(AlertService.Type);
+        List<WorkProduct> productList = getWorkProductService()
+                .listByProductType(AlertService.Type);
         for (WorkProduct product : productList) {
             try {
                 AlertDocument alertDocument = (AlertDocument) product.getProduct();
@@ -176,8 +181,9 @@ public class AlertServiceImpl
 
     /**
      * Gets the alert using the workproduct id string
-     * 
-     * @param wpID the wp id
+     *
+     * @param wpID
+     *            the wp id
      * @return the alert
      * @ssdd
      */
@@ -189,8 +195,9 @@ public class AlertServiceImpl
 
     /**
      * Gets the alert by alert id.
-     * 
-     * @param alertId the alert id
+     *
+     * @param alertId
+     *            the alert id
      * @return the alert by alert id
      * @ssdd
      */
@@ -207,15 +214,17 @@ public class AlertServiceImpl
 
     /**
      * Gets the list of alerts.
-     * 
-     * @param queryType the query type
-     * @param namespaceMap the namespace map
+     *
+     * @param queryType
+     *            the query type
+     * @param namespaceMap
+     *            the namespace map
      * @return the list of alerts
      * @ssdd
      */
     @Override
     public WorkProduct[] getListOfAlerts(String queryType, NamespaceMapType namespaceMap)
-        throws InvalidXpathException {
+            throws InvalidXpathException {
 
         Map<String, String> mapNamespaces = new HashMap<String, String>();
         if (namespaceMap != null) {
@@ -228,9 +237,8 @@ public class AlertServiceImpl
         /*
          * Get a list of WP by Type from Work Product and use that list to match the alertID
          */
-        List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(AlertService.Type,
-            queryType,
-            mapNamespaces);
+        List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(
+                AlertService.Type, queryType, mapNamespaces);
         if (listOfProducts != null && listOfProducts.size() > 0) {
             WorkProduct[] products = new WorkProduct[listOfProducts.size()];
             return listOfProducts.toArray(products);
@@ -256,17 +264,16 @@ public class AlertServiceImpl
 
     /**
      * System initialized handler.
-     * 
-     * @param message the message
+     *
+     * @param message
+     *            the message
      */
     @Override
     public void systemInitializedHandler(String message) {
 
         WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(AlertService.Type);
-        directoryService.registerUICDSService(NS_AgreementService,
-            ALERT_SERVICE_NAME,
-            typeList,
-            typeList);
+        directoryService.registerUICDSService(NS_AgreementService, ALERT_SERVICE_NAME, typeList,
+                typeList);
     }
 }

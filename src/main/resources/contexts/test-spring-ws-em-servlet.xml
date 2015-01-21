@@ -28,7 +28,7 @@
             <bean class="org.springframework.ws.server.endpoint.interceptor.PayloadLoggingInterceptor" />
         </property>
     </bean>
-    <bean id="mapServiceEndpoint" class="com.saic.uicds.core.em.endpoint.MapServiceEndpoint" />
+    <bean id="mapServiceEndpoint" class="com.leidos.xchangecore.core.em.endpoint.MapServiceEndpoint" />
     <bean class="org.springframework.ws.server.endpoint.adapter.PayloadEndpointAdapter" />
 
 
@@ -45,7 +45,7 @@
     <!-- -->
     <!-- SCAN THE CLASSPATH FOR ENDPOIINTS -->
     <!-- -->
-    <context:component-scan base-package="com.saic.uicds.core.em.endpoint" />
+    <context:component-scan base-package="com.leidos.xchangecore.core.em.endpoint" />
 
     <!-- -->
     <!-- ENDPOINT MAPPING -->

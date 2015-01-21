@@ -36,58 +36,20 @@ import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * GetCapabilitiesHandler
- * 
- * 
+ *
+ *
  * @author Santhosh Amanchi - Image Matters, LLC
- * @package com.saic.uicds.core.em.util
+ * @package com.leidos.xchangecore.core.em.util
  * @created Jun 28, 2011
  */
-public class GetCapabilitiesHandler
-    extends AbstractRequestHandler {
+public class GetCapabilitiesHandler extends AbstractRequestHandler {
 
     public GetCapabilitiesHandler() {
 
     }
 
-    @Override
-    public ModelAndView handleRequest(OwsRequest owsRequest,
-                                      HttpServletRequest request,
-                                      HttpServletResponse response) throws Exception {
-
-        ModelAndView result = null;
-
-        return result;
-    }
-
-    @Override
-    public OwsRequest parseQueryParameters(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-
-        String version = getRequestParameter("version", request, null);
-        String language = getRequestParameter("language", request, "en-US");
-
-        GetCapabilitiesRequest result = new GetCapabilitiesRequest();
-        if (version != null) {
-            result.setVersion(version);
-            result.getVersions().add(version);
-        }
-        result.setLanguage(language);
-        return result;
-    }
-
-    protected String getRequestParameter(String name, HttpServletRequest request, String fallback) {
-
-        for (Object key : request.getParameterMap().keySet()) {
-            if (((String) key).equalsIgnoreCase(name)) {
-                return request.getParameter((String) key);
-            }
-        }
-        return fallback;
-    }
-
-    public ServiceMetadata computeMetadata(Element viewContext,
-                                           GetCapabilitiesRequest gcRequest,
-                                           HttpServletRequest httpRequest) {
+    public ServiceMetadata computeMetadata(Element viewContext, GetCapabilitiesRequest gcRequest,
+            HttpServletRequest httpRequest) {
 
         String language = gcRequest.getLanguage();
         if (!("en-US".equals(language))) {
@@ -106,7 +68,7 @@ public class GetCapabilitiesHandler
         if (sections.isEmpty() || sections.contains(OWS.ServiceIdentification.getLocalPart())) {
             Element general = DOMUtils.getChild(viewContext, "General");
             ServiceIdentification ident = new ServiceIdentification("UICDS Map Service",
-                                                                    gcRequest.getVersion());
+                    gcRequest.getVersion());
             ident.setTitle(getElementValue(general, "Title"));
             ident.setAbstract(getElementValue(general, "Abstract"));
             ident.setKeywords(getKeywords(general));
@@ -164,6 +126,13 @@ public class GetCapabilitiesHandler
         return result;
     }
 
+    private String getElementValue(Element elem, String key) {
+
+        Element valueElem = DOMUtils.getChild(elem, key);
+        String value = DOMUtils.getContent(valueElem);
+        return value;
+    }
+
     private List<String> getKeywords(Element general) {
 
         List<String> keys = new ArrayList<String>();
@@ -214,11 +183,39 @@ public class GetCapabilitiesHandler
         return layerServer;
     }
 
-    private String getElementValue(Element elem, String key) {
+    protected String getRequestParameter(String name, HttpServletRequest request, String fallback) {
 
-        Element valueElem = DOMUtils.getChild(elem, key);
-        String value = DOMUtils.getContent(valueElem);
-        return value;
+        for (Object key : request.getParameterMap().keySet()) {
+            if (((String) key).equalsIgnoreCase(name)) {
+                return request.getParameter((String) key);
+            }
+        }
+        return fallback;
+    }
+
+    @Override
+    public ModelAndView handleRequest(OwsRequest owsRequest, HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
+
+        ModelAndView result = null;
+
+        return result;
+    }
+
+    @Override
+    public OwsRequest parseQueryParameters(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String version = getRequestParameter("version", request, null);
+        String language = getRequestParameter("language", request, "en-US");
+
+        GetCapabilitiesRequest result = new GetCapabilitiesRequest();
+        if (version != null) {
+            result.setVersion(version);
+            result.getVersions().add(version);
+        }
+        result.setLanguage(language);
+        return result;
     }
 
 }

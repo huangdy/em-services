@@ -22,56 +22,168 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * The LEITSCService implementation
- * 
+ *
  * @see com.leidos.xchangecore.core.em.model.LEITSCIncident LEITSCIncident Data Model
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class LEITSCServiceImpl
-    implements LEITSCService {
+public class LEITSCServiceImpl implements LEITSCService {
 
     Logger log = LoggerFactory.getLogger(LEITSCServiceImpl.class);
 
     private LEITSCIncidentDAO leitscIncidentDAO;
 
-    public LEITSCIncidentDAO getLeitscIncidentDAO() {
-
-        return leitscIncidentDAO;
-    }
-
-    public void setLeitscIncidentDAO(LEITSCIncidentDAO leitscIncidentDAO) {
-
-        this.leitscIncidentDAO = leitscIncidentDAO;
-    }
-
     private IncidentManagementService incidentManagementService;
+
+    private String clearLEITSCIncident(String leitscIncidentID, DetailedCFSMessageReader reader)
+            throws LEITSCIncidentPublicationException {
+
+        LEITSCIncident leitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
+        if (leitscIncident != null) {
+            log.debug("===> clearLEITSCIncident: close uicds incident ID="
+                    + leitscIncident.getIncidentID());
+            ProductPublicationStatus status = incidentManagementService
+                    .closeIncident(leitscIncident.getIncidentID());
+            if ((status != null)
+                    && status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
+                log.debug("===> clearLEITSCIncident: archive uicds incident ID="
+                        + leitscIncident.getIncidentID());
+                status = incidentManagementService.archiveIncident(leitscIncident.getIncidentID());
+                if ((status != null)
+                        && status.getStatus().equalsIgnoreCase(
+                                ProductPublicationStatus.SuccessStatus)) {
+                    log.debug("===> clearLEITSCIncident: remove LEITSC incident , with  LEITSC incident ID="
+                            + leitscIncident
+                            + " and uicds incident ID="
+                            + leitscIncident.getIncidentID());
+                    leitscIncidentDAO.makeTransient(leitscIncident);
+                    return leitscIncidentID;
+                } else {
+                    String reasonForFailure = (status == null) ? "Unkown" : status
+                            .getReasonForFailure();
+                    log.error("postDetailedCFSMessage - failed to retire leitsc incident "
+                            + leitscIncidentID + " reason=" + reasonForFailure);
+                    throw new LEITSCIncidentPublicationException(leitscIncidentID, "retire",
+                            reasonForFailure);
+                }
+            } else {
+                // do something here
+                String reasonForFailure = (status == null) ? "Unkown" : status
+                        .getReasonForFailure();
+                log.error("postDetailedCFSMessage - failed to retire leitsc incident "
+                        + leitscIncidentID + " reason=" + reasonForFailure);
+                throw new LEITSCIncidentPublicationException(leitscIncidentID, "retire",
+                        reasonForFailure);
+            }
+        } else {
+            String reasonForFailure = " leitscIncident with ID" + leitscIncidentID
+                    + " does NOT exist";
+            log.error("postDetailedCFSMessage - failed to retire leitsc incident "
+                    + leitscIncidentID + " reason=" + reasonForFailure);
+            throw new LEITSCIncidentPublicationException(leitscIncidentID, "retire",
+                    reasonForFailure);
+        }
+    }
+
+    private String createLEITSCIncident(String leitscIncidentID, DetailedCFSMessageReader reader)
+            throws LEITSCIncidentPublicationException, DetailedCFSMessageXMLException,
+            DetailedCFSMessageException, XmlException {
+
+        LEITSCIncident existingLeitscIncident = leitscIncidentDAO
+                .findByLEITSCIncident(leitscIncidentID);
+        if (existingLeitscIncident == null) {
+            UICDSIncidentType incident = DetailedCFSMessageUtil.createUICDSIncident();
+            incident = DetailedCFSMessageUtil.populateIncident(incident, reader);
+            ProductPublicationStatus status = incidentManagementService.createIncident(incident);
+            if ((status != null)
+                    && status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
+                LEITSCIncident leitscIncident = new LEITSCIncident();
+                leitscIncident.setLeitscIncidentID(leitscIncidentID);
+                leitscIncident.setIncidentID(status.getProduct()
+                        .getFirstAssociatedInterestGroupID());
+                leitscIncident.setIncidentWPID(status.getProduct().getProductID());
+                log.debug("===> createLEITSCIncident:  uicds incident ID="
+                        + status.getProduct().getFirstAssociatedInterestGroupID() + " wpID="
+                        + status.getProduct().getProductID()
+                        + " was created for LEITSC incident ID=" + leitscIncidentID);
+                leitscIncidentDAO.makePersistent(leitscIncident);
+
+            } else {
+                // do something here
+                String reasonForFailure = (status == null) ? "Unkown" : status
+                        .getReasonForFailure();
+                log.error("postDetailedCFSMessage - failed to create leitsc incident "
+                        + leitscIncidentID + " reason=" + reasonForFailure);
+                throw new LEITSCIncidentPublicationException(leitscIncidentID, "create",
+                        reasonForFailure);
+            }
+            return leitscIncidentID;
+        } else {
+            String reasonForFailure = " LEITSC incident ID=" + leitscIncidentID + "already exists";
+            log.error("postDetailedCFSMessage - failed to create leitsc incident "
+                    + leitscIncidentID + " reason=" + reasonForFailure);
+            throw new LEITSCIncidentPublicationException(leitscIncidentID, "create",
+                    reasonForFailure);
+        }
+
+    }
 
     public IncidentManagementService getIncidentManagementService() {
 
         return incidentManagementService;
     }
 
-    public void setIncidentManagementService(IncidentManagementService incidentManagementService) {
+    /**
+     * Gets the LEITSC incident.
+     *
+     * @param leitscIncidentID
+     *            the LEITSC incident id
+     *
+     * @return the LEITSC incident
+     * @ssdd
+     */
+    @Override
+    public com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct getLEITSCIncident(
+            String leitscIncidentID) {
 
-        this.incidentManagementService = incidentManagementService;
+        com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct product = null;
+        LEITSCIncident leitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
+        if (leitscIncident != null) {
+            WorkProduct wp = incidentManagementService
+                    .getIncident(leitscIncident.getIncidentWPID());
+            if (wp != null) {
+                product = WorkProductHelper.toWorkProduct(wp);
+            }
+        }
+        return product;
+    }
+
+    public LEITSCIncidentDAO getLeitscIncidentDAO() {
+
+        return leitscIncidentDAO;
     }
 
     /**
      * Post detailed CFS message.
-     * 
-     * @param message the message
-     * 
+     *
+     * @param message
+     *            the message
+     *
      * @return the string
-     * 
-     * @throws DetailedCFSMessageException the detailed cfs message exception
-     * @throws DetailedCFSMessageXMLException the detailed cfs message xml exception
-     * @throws LEITSCIncidentPublicationException the LEITSC incident publication exception
-     * @throws XmlException the xml exception
+     *
+     * @throws DetailedCFSMessageException
+     *             the detailed cfs message exception
+     * @throws DetailedCFSMessageXMLException
+     *             the detailed cfs message xml exception
+     * @throws LEITSCIncidentPublicationException
+     *             the LEITSC incident publication exception
+     * @throws XmlException
+     *             the xml exception
      * @ssdd
      */
     @Override
     public String postDetailedCFSMessage(String message) throws DetailedCFSMessageException,
-        DetailedCFSMessageXMLException, LEITSCIncidentPublicationException, XmlException {
+            DetailedCFSMessageXMLException, LEITSCIncidentPublicationException, XmlException {
 
         log.debug("postDetailedCFSMessage - received meesage:[" + message + "]");
 
@@ -86,11 +198,13 @@ public class LEITSCServiceImpl
 
         String activityStatus = reader.read(DetailedCFSMessageReader.ACTIVITY_STATUS_TEXT);
 
-        if (activityStatus.equalsIgnoreCase(DetailedCFSMessageReader.ActivityStatusText.CREATED.toString())) {
+        if (activityStatus.equalsIgnoreCase(DetailedCFSMessageReader.ActivityStatusText.CREATED
+                .toString())) {
             // create a new incident
             result = createLEITSCIncident(leitscIncidentID, reader);
 
-        } else if (activityStatus.equalsIgnoreCase(DetailedCFSMessageReader.ActivityStatusText.CLEARED.toString())) {
+        } else if (activityStatus
+                .equalsIgnoreCase(DetailedCFSMessageReader.ActivityStatusText.CLEARED.toString())) {
             // close and archive incident
             result = clearLEITSCIncident(leitscIncidentID, reader);
 
@@ -102,188 +216,79 @@ public class LEITSCServiceImpl
         return result;
     }
 
-    private String createLEITSCIncident(String leitscIncidentID, DetailedCFSMessageReader reader)
-        throws LEITSCIncidentPublicationException, DetailedCFSMessageXMLException,
-        DetailedCFSMessageException, XmlException {
+    public void setIncidentManagementService(IncidentManagementService incidentManagementService) {
 
-        LEITSCIncident existingLeitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
-        if (existingLeitscIncident == null) {
-            UICDSIncidentType incident = DetailedCFSMessageUtil.createUICDSIncident();
-            incident = DetailedCFSMessageUtil.populateIncident(incident, reader);
-            ProductPublicationStatus status = incidentManagementService.createIncident(incident);
-            if ((status != null) &&
-                status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
-                LEITSCIncident leitscIncident = new LEITSCIncident();
-                leitscIncident.setLeitscIncidentID(leitscIncidentID);
-                leitscIncident.setIncidentID(status.getProduct().getFirstAssociatedInterestGroupID());
-                leitscIncident.setIncidentWPID(status.getProduct().getProductID());
-                log.debug("===> createLEITSCIncident:  uicds incident ID=" +
-                          status.getProduct().getFirstAssociatedInterestGroupID() + " wpID=" +
-                          status.getProduct().getProductID() +
-                          " was created for LEITSC incident ID=" + leitscIncidentID);
-                leitscIncidentDAO.makePersistent(leitscIncident);
+        this.incidentManagementService = incidentManagementService;
+    }
 
-            } else {
-                // do something here
-                String reasonForFailure = (status == null) ? "Unkown"
-                                                          : status.getReasonForFailure();
-                log.error("postDetailedCFSMessage - failed to create leitsc incident " +
-                          leitscIncidentID + " reason=" + reasonForFailure);
-                throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                             "create",
-                                                             reasonForFailure);
-            }
-            return leitscIncidentID;
-        } else {
-            String reasonForFailure = " LEITSC incident ID=" + leitscIncidentID + "already exists";
-            log.error("postDetailedCFSMessage - failed to create leitsc incident " +
-                      leitscIncidentID + " reason=" + reasonForFailure);
-            throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                         "create",
-                                                         reasonForFailure);
-        }
+    public void setLeitscIncidentDAO(LEITSCIncidentDAO leitscIncidentDAO) {
 
+        this.leitscIncidentDAO = leitscIncidentDAO;
     }
 
     private String updateLEITSCIncident(String leitscIncidentID, DetailedCFSMessageReader reader)
-        throws LEITSCIncidentPublicationException, DetailedCFSMessageXMLException,
-        DetailedCFSMessageException, XmlException {
+            throws LEITSCIncidentPublicationException, DetailedCFSMessageXMLException,
+            DetailedCFSMessageException, XmlException {
 
         LEITSCIncident leitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
         if (leitscIncident != null) {
-            log.debug("updateLEITSCIncident - get work product for uicds incident ID=" +
-                      leitscIncident.getIncidentID());
-            WorkProduct wp = incidentManagementService.getIncident(leitscIncident.getIncidentWPID());
+            log.debug("updateLEITSCIncident - get work product for uicds incident ID="
+                    + leitscIncident.getIncidentID());
+            WorkProduct wp = incidentManagementService
+                    .getIncident(leitscIncident.getIncidentWPID());
             if (wp != null) {
-                log.debug("updateLEITSCIncident - found work product ID=" + wp.getProductID() +
-                          " associated with uicds incident ID=" + leitscIncident.getIncidentID());
+                log.debug("updateLEITSCIncident - found work product ID=" + wp.getProductID()
+                        + " associated with uicds incident ID=" + leitscIncident.getIncidentID());
                 UICDSIncidentType incident = IncidentUtil.getUICDSIncident(wp);
                 if (incident != null) {
                     incident = DetailedCFSMessageUtil.populateIncident(incident, reader);
                     IdentificationType pkdId = WorkProductHelper.getWorkProductIdentification(wp);
-                    log.debug("updateLEITSCIncident - updater uicds incident ID=" +
-                              leitscIncident.getIncidentID() + " for LEITSC incident ID=" +
-                              leitscIncident.getLeitscIncidentID());
-                    ProductPublicationStatus status = incidentManagementService.updateIncident(incident,
-                        pkdId);
-                    if ((status != null) &&
-                        status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
+                    log.debug("updateLEITSCIncident - updater uicds incident ID="
+                            + leitscIncident.getIncidentID() + " for LEITSC incident ID="
+                            + leitscIncident.getLeitscIncidentID());
+                    ProductPublicationStatus status = incidentManagementService.updateIncident(
+                            incident, pkdId);
+                    if ((status != null)
+                            && status.getStatus().equalsIgnoreCase(
+                                    ProductPublicationStatus.SuccessStatus)) {
                         return leitscIncidentID;
                     } else {
                         // do something here
-                        String reasonForFailure = (status == null) ? "Unkown"
-                                                                  : status.getReasonForFailure();
-                        log.error("postDetailedCFSMessage - failed to open leitsc incident " +
-                                  leitscIncidentID + " reason=" + reasonForFailure);
-                        throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                                     "open",
-                                                                     reasonForFailure);
+                        String reasonForFailure = (status == null) ? "Unkown" : status
+                                .getReasonForFailure();
+                        log.error("postDetailedCFSMessage - failed to open leitsc incident "
+                                + leitscIncidentID + " reason=" + reasonForFailure);
+                        throw new LEITSCIncidentPublicationException(leitscIncidentID, "open",
+                                reasonForFailure);
                     }
                 } else {
-                    String reasonForFailure = " leitscIncident with ID" +
-                                              leitscIncidentID +
-                                              " whose UICDS incident with incident ID=" +
-                                              leitscIncident.getIncidentID() +
-                                              " failes to be generated from the work product wpID=" +
-                                              wp.getProductID();
-                    log.error("postDetailedCFSMessage - failed to open leitsc incident " +
-                              leitscIncidentID + " reason=" + reasonForFailure);
-                    throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                                 "open",
-                                                                 reasonForFailure);
+                    String reasonForFailure = " leitscIncident with ID" + leitscIncidentID
+                            + " whose UICDS incident with incident ID="
+                            + leitscIncident.getIncidentID()
+                            + " failes to be generated from the work product wpID="
+                            + wp.getProductID();
+                    log.error("postDetailedCFSMessage - failed to open leitsc incident "
+                            + leitscIncidentID + " reason=" + reasonForFailure);
+                    throw new LEITSCIncidentPublicationException(leitscIncidentID, "open",
+                            reasonForFailure);
                 }
             } else {
-                String reasonForFailure = " leitscIncident with ID" + leitscIncidentID +
-                                          " whose UICDS incident with incident ID=" +
-                                          leitscIncident.getIncidentID() +
-                                          " does NOT have a work product";
-                log.error("postDetailedCFSMessage - failed to open leitsc incident " +
-                          leitscIncidentID + " reason=" + reasonForFailure);
-                throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                             "open",
-                                                             reasonForFailure);
+                String reasonForFailure = " leitscIncident with ID" + leitscIncidentID
+                        + " whose UICDS incident with incident ID="
+                        + leitscIncident.getIncidentID() + " does NOT have a work product";
+                log.error("postDetailedCFSMessage - failed to open leitsc incident "
+                        + leitscIncidentID + " reason=" + reasonForFailure);
+                throw new LEITSCIncidentPublicationException(leitscIncidentID, "open",
+                        reasonForFailure);
             }
 
         } else {
-            String reasonForFailure = " leitscIncident with ID" + leitscIncidentID +
-                                      " does NOT exist";
-            log.error("postDetailedCFSMessage - failed to open leitsc incident " +
-                      leitscIncidentID + " reason=" + reasonForFailure);
+            String reasonForFailure = " leitscIncident with ID" + leitscIncidentID
+                    + " does NOT exist";
+            log.error("postDetailedCFSMessage - failed to open leitsc incident " + leitscIncidentID
+                    + " reason=" + reasonForFailure);
             throw new LEITSCIncidentPublicationException(leitscIncidentID, "open", reasonForFailure);
         }
-    }
-
-    private String clearLEITSCIncident(String leitscIncidentID, DetailedCFSMessageReader reader)
-        throws LEITSCIncidentPublicationException {
-
-        LEITSCIncident leitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
-        if (leitscIncident != null) {
-            log.debug("===> clearLEITSCIncident: close uicds incident ID=" +
-                      leitscIncident.getIncidentID());
-            ProductPublicationStatus status = incidentManagementService.closeIncident(leitscIncident.getIncidentID());
-            if ((status != null) &&
-                status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
-                log.debug("===> clearLEITSCIncident: archive uicds incident ID=" +
-                          leitscIncident.getIncidentID());
-                status = incidentManagementService.archiveIncident(leitscIncident.getIncidentID());
-                if ((status != null) &&
-                    status.getStatus().equalsIgnoreCase(ProductPublicationStatus.SuccessStatus)) {
-                    log.debug("===> clearLEITSCIncident: remove LEITSC incident , with  LEITSC incident ID=" +
-                              leitscIncident +
-                              " and uicds incident ID=" +
-                              leitscIncident.getIncidentID());
-                    leitscIncidentDAO.makeTransient(leitscIncident);
-                    return leitscIncidentID;
-                } else {
-                    String reasonForFailure = (status == null) ? "Unkown"
-                                                              : status.getReasonForFailure();
-                    log.error("postDetailedCFSMessage - failed to retire leitsc incident " +
-                              leitscIncidentID + " reason=" + reasonForFailure);
-                    throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                                 "retire",
-                                                                 reasonForFailure);
-                }
-            } else {
-                // do something here
-                String reasonForFailure = (status == null) ? "Unkown"
-                                                          : status.getReasonForFailure();
-                log.error("postDetailedCFSMessage - failed to retire leitsc incident " +
-                          leitscIncidentID + " reason=" + reasonForFailure);
-                throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                             "retire",
-                                                             reasonForFailure);
-            }
-        } else {
-            String reasonForFailure = " leitscIncident with ID" + leitscIncidentID +
-                                      " does NOT exist";
-            log.error("postDetailedCFSMessage - failed to retire leitsc incident " +
-                      leitscIncidentID + " reason=" + reasonForFailure);
-            throw new LEITSCIncidentPublicationException(leitscIncidentID,
-                                                         "retire",
-                                                         reasonForFailure);
-        }
-    }
-
-    /**
-     * Gets the LEITSC incident.
-     * 
-     * @param leitscIncidentID the LEITSC incident id
-     * 
-     * @return the LEITSC incident
-     * @ssdd
-     */
-    @Override
-    public com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct getLEITSCIncident(String leitscIncidentID) {
-
-        com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct product = null;
-        LEITSCIncident leitscIncident = leitscIncidentDAO.findByLEITSCIncident(leitscIncidentID);
-        if (leitscIncident != null) {
-            WorkProduct wp = incidentManagementService.getIncident(leitscIncident.getIncidentWPID());
-            if (wp != null) {
-                product = WorkProductHelper.toWorkProduct(wp);
-            }
-        }
-        return product;
     }
 
 }

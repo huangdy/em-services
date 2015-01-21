@@ -22,13 +22,12 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * The TaskingService implementation.
- * 
+ *
  * @author ron
- * @see com.saic.uicds.core.infrastructure.model.WorkProduct WorkProduct Data Model
+ * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class TaskingServiceImpl
-    implements TaskingService, ServiceNamespaces {
+public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
 
     Logger log = LoggerFactory.getLogger(TaskingServiceImpl.class);
 
@@ -38,17 +37,19 @@ public class TaskingServiceImpl
 
     /**
      * Creates the task list.
-     * 
-     * @param entityId the entity id
-     * @param incidentId the incident id
-     * @param taskList the task list
+     *
+     * @param entityId
+     *            the entity id
+     * @param incidentId
+     *            the incident id
+     * @param taskList
+     *            the task list
      * @return the product publication status
      * @ssdd
      */
     @Override
-    public ProductPublicationStatus createTaskList(String entityId,
-                                                   String incidentId,
-                                                   TaskListType taskList) {
+    public ProductPublicationStatus createTaskList(String entityId, String incidentId,
+            TaskListType taskList) {
 
         log.debug("createTaskList");
 
@@ -78,8 +79,9 @@ public class TaskingServiceImpl
 
     /**
      * Delete task list.
-     * 
-     * @param wpId the wp id
+     *
+     * @param wpId
+     *            the wp id
      * @return the product publication status
      * @ssdd
      */
@@ -100,13 +102,15 @@ public class TaskingServiceImpl
 
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
-            status = getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(wp));
+            status = getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(wp));
             if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
                 return status;
             }
         }
 
-        return getWorkProductService().archiveProduct(WorkProductHelper.getWorkProductIdentification(wp));
+        return getWorkProductService().archiveProduct(
+                WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     /** {@inheritDoc} */
@@ -118,8 +122,9 @@ public class TaskingServiceImpl
 
     /**
      * Gets the task list.
-     * 
-     * @param wpId the wp id
+     *
+     * @param wpId
+     *            the wp id
      * @return the task list
      * @ssdd
      */
@@ -131,9 +136,11 @@ public class TaskingServiceImpl
 
     /**
      * Gets the task list by entity id and incident id.
-     * 
-     * @param entityId the entity id
-     * @param incidentId the incident id
+     *
+     * @param entityId
+     *            the entity id
+     * @param incidentId
+     *            the incident id
      * @return the task list by entity id and incident id
      * @ssdd
      */
@@ -147,7 +154,7 @@ public class TaskingServiceImpl
 
         // GetByType and IncidentID
         List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
-            TaskingService.TASKING_PRODUCT_TYPE);
+                TaskingService.TASKING_PRODUCT_TYPE);
         for (WorkProduct wp : wpList) {
             try {
                 taskListDocument = (TaskListDocument) wp.getProduct();
@@ -167,9 +174,11 @@ public class TaskingServiceImpl
 
     /**
      * Gets the task list by incident id.
-     * 
-     * @param entityId the entity id
-     * @param incidentId the incident id
+     *
+     * @param entityId
+     *            the entity id
+     * @param incidentId
+     *            the incident id
      * @return the task list by incident id
      * @ssdd
      */
@@ -180,7 +189,7 @@ public class TaskingServiceImpl
 
         // GetByType and IncidentID
         List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
-            TaskingService.TASKING_PRODUCT_TYPE);
+                TaskingService.TASKING_PRODUCT_TYPE);
         for (WorkProduct wp : wpList) {
             try {
                 taskListDocument = (TaskListDocument) wp.getProduct();
@@ -232,25 +241,26 @@ public class TaskingServiceImpl
 
         WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(TASKING_PRODUCT_TYPE);
-        directoryService.registerUICDSService(NS_TaskingService,
-            TASKING_SERVICE_NAME,
-            typeList,
-            typeList);
+        directoryService.registerUICDSService(NS_TaskingService, TASKING_SERVICE_NAME, typeList,
+                typeList);
     }
 
     /**
      * Update task list.
-     * 
-     * @param taskList the task list
-     * @param workProductIdentification the work product identification
+     *
+     * @param taskList
+     *            the task list
+     * @param workProductIdentification
+     *            the work product identification
      * @return the product publication status
      * @ssdd
      */
     @Override
     public ProductPublicationStatus updateTaskList(TaskListType taskList,
-                                                   IdentificationType workProductIdentification) {
+            IdentificationType workProductIdentification) {
 
-        WorkProduct wp = workProductService.getProduct(workProductIdentification.getIdentifier().getStringValue());
+        WorkProduct wp = workProductService.getProduct(workProductIdentification.getIdentifier()
+                .getStringValue());
 
         TaskListDocument taskListDoc = TaskListDocument.Factory.newInstance();
         taskListDoc.addNewTaskList().set(taskList);
