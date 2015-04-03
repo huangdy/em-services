@@ -35,8 +35,8 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * @ssdd
  */
 @Transactional
-public class IncidentCommandServiceImpl implements IncidentCommandService, ServiceNamespaces,
-        InfrastructureNamespaces {
+public class IncidentCommandServiceImpl
+implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
 
     private final Logger log = LoggerFactory.getLogger(IncidentCommandServiceImpl.class);
 
@@ -64,8 +64,9 @@ public class IncidentCommandServiceImpl implements IncidentCommandService, Servi
 
         try {
             // try the type as ICSType
-            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType, null,
-                    null);
+            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType,
+                null,
+                null);
             // if there is no ICSType, try the MACSType
             if (icsList.size() == 0) {
                 icsList = workProductService.getProductByTypeAndXQuery(MACSType, null, null);
@@ -109,14 +110,15 @@ public class IncidentCommandServiceImpl implements IncidentCommandService, Servi
 
     private String getWorkProductTypeByOrg(OrganizationElementDocument org) {
 
-        if (org == null || org.getOrganizationElement() == null
-                || org.getOrganizationElement().getPersonInCharge() == null
-                || org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null) {
+        if (org == null || org.getOrganizationElement() == null ||
+            org.getOrganizationElement().getPersonInCharge() == null ||
+            org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null) {
             return "UnknownType";
         }
 
-        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef()
-                .startsWith(IncidentCommanderRole) ? ICSType : MACSType;
+        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef().startsWith(IncidentCommanderRole)
+            ? ICSType
+            : MACSType;
     }
 
     /*
@@ -157,7 +159,9 @@ public class IncidentCommandServiceImpl implements IncidentCommandService, Servi
         typeList.addProductType(ICSType);
         typeList.addProductType(MACSType);
         getDirectoryService().registerUICDSService(NS_IncidentCommandStructureService,
-                ICS_SERVICE_NAME, typeList, typeList);
+            ICS_SERVICE_NAME,
+            typeList,
+            typeList);
     }
 
     /*
@@ -201,10 +205,11 @@ public class IncidentCommandServiceImpl implements IncidentCommandService, Servi
     @Override
     public ProductPublicationStatus updateCommandStructure(IdentificationType pkgId,
 
-            // Actually, we don't need to model the Command Structure anymore since we will take it as
-            // product and save it
+                                                           // Actually, we don't need to model the Command Structure anymore since we will take it as
+                                                           // product and save it
 
-            OrganizationElementDocument org, String incidentID) {
+                                                           OrganizationElementDocument org,
+                                                           String incidentID) {
 
         log.debug("updateCommandStructure");
         if (incidentID != null) {
