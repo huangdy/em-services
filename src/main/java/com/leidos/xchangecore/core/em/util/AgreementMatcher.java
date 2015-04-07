@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uicds.incident.IncidentDocument;
 
+import com.leidos.xchangecore.core.infrastructure.model.ExtendedMetadata;
 import com.leidos.xchangecore.core.infrastructure.model.ShareRule;
-import com.leidos.xchangecore.core.infrastructure.util.ExtendedMetadata;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;

@@ -57,6 +57,7 @@ import com.leidos.xchangecore.core.infrastructure.messages.InterestGroupStateNot
 import com.leidos.xchangecore.core.infrastructure.messages.JoinedInterestGroupNotificationMessage;
 import com.leidos.xchangecore.core.infrastructure.messages.ProductChangeNotificationMessage;
 import com.leidos.xchangecore.core.infrastructure.model.Agreement;
+import com.leidos.xchangecore.core.infrastructure.model.ExtendedMetadata;
 import com.leidos.xchangecore.core.infrastructure.model.WorkProduct;
 import com.leidos.xchangecore.core.infrastructure.service.ConfigurationService;
 import com.leidos.xchangecore.core.infrastructure.service.DirectoryService;
@@ -66,7 +67,6 @@ import com.leidos.xchangecore.core.infrastructure.service.PubSubService;
 import com.leidos.xchangecore.core.infrastructure.service.WorkProductService;
 import com.leidos.xchangecore.core.infrastructure.service.impl.InterestGroupInfo;
 import com.leidos.xchangecore.core.infrastructure.service.impl.ProductPublicationStatus;
-import com.leidos.xchangecore.core.infrastructure.util.ExtendedMetadata;
 import com.leidos.xchangecore.core.infrastructure.util.LdapUtil;
 import com.leidos.xchangecore.core.infrastructure.util.LogEntry;
 import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
