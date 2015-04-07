@@ -54,34 +54,34 @@
 			<Location>
 				<xsl:attribute name="id"><xsl:value-of select="$LocationID"/></xsl:attribute>
 				<xsl:for-each select="inc:Incident/ns1:IncidentLocation/ns1:LocationArea/ns1:AreaCircularRegion">
-					<GeoLocation>
+          			<xsl:variable name="latdecimal">
+           				<xsl:choose>
+           					<xsl:when test="contains(string(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue), '-')">
+           					  <xsl:value-of select="concat('-',format-number(abs(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600),'###.00000'))"/>
+           					</xsl:when>
+           				<xsl:otherwise>
+           					<xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600),'###.00000')"/>
+           				</xsl:otherwise>
+           				</xsl:choose>	
+      				</xsl:variable>  
+           			<xsl:variable name="longdecimal">
+           			<xsl:choose>
+           				<xsl:when test="contains(string(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue), '-')">
+           					<xsl:value-of select="concat('-',format-number(abs(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600), '###.00000'))"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                           <xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600), '###.00000')"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+           			</xsl:variable>
+					 <GeoLocation>
 						<CircleByCenterPoint>
 							<ucoregml:CircleByCenterPoint>
 								<xsl:attribute name="numArc">1</xsl:attribute>
-								<xsl:if test="ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue &gt;= 0 and ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue &gt;= 0">
-									<ucoregml:pos>
-										<xsl:attribute name="srsName">EPSG:4326</xsl:attribute>
-										<xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600),'###.00000')"/>, <xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600),'###.00000')"/>								
-									</ucoregml:pos>
-								</xsl:if>
-								<xsl:if test="ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue &lt; 0 and ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue &lt; 0">
-									<ucoregml:pos>
-										<xsl:attribute name="srsName">EPSG:4326</xsl:attribute>
-										<xsl:value-of select="format-number( ((((ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue - not(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600))*-1),'###.00000')"/>, <xsl:value-of select="format-number( ((((ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue - not(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600))*-1),'###.00000')"/>								
-									</ucoregml:pos>
-								</xsl:if>
-								<xsl:if test="ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue &gt;= 0 and ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue &lt; 0">
-									<ucoregml:pos>
-										<xsl:attribute name="srsName">EPSG:4326</xsl:attribute>
-										<xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600),'###.00000')"/>, <xsl:value-of select="format-number( ((((ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue - not(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600))*-1),'###.00000')"/>								
-									</ucoregml:pos>
-								</xsl:if>
-								<xsl:if test="ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue &lt; 0 and ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue &gt;= 0">
-									<ucoregml:pos>
-										<xsl:attribute name="srsName">EPSG:4326</xsl:attribute>
-										<xsl:value-of select="format-number( ((((ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue - not(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue >= 0)*ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeDegreeValue) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLatitude/ns1:LatitudeSecondValue div 3600))*-1),'###.00000')"/>, <xsl:value-of select="format-number(ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeDegreeValue + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeMinuteValue div 60) + (ns1:CircularRegionCenterCoordinate/ns1:GeographicCoordinateLongitude/ns1:LongitudeSecondValue div 3600),'###.00000')"/>								
-									</ucoregml:pos>
-								</xsl:if>
+								<ucoregml:pos>
+									<xsl:attribute name="srsName">EPSG:4326</xsl:attribute>
+                                    <xsl:value-of select="$latdecimal"/><xsl:text> </xsl:text><xsl:value-of select="$longdecimal"/>
+								</ucoregml:pos>
 								<ucoregml:radius>
 									<xsl:attribute name="uom">SMI</xsl:attribute>
 									<xsl:value-of select="ns1:CircularRegionRadiusLengthMeasure/ns1:MeasurePointValue"/>

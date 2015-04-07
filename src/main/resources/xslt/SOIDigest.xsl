@@ -13,7 +13,10 @@
 			<xsl:attribute name="id"><xsl:value-of select="$ObservationEventID"/></xsl:attribute>
 			<ns:Descriptor><xsl:value-of select="tns:SensorObservationInfo/tns:SensorInfo/tns:description"/></ns:Descriptor>
 			<ns:Identifier ns:code="" ns:codespace="" ns:label="Observation"><xsl:value-of select="tns:SensorObservationInfo/tns:SensorInfo/tns:name"/></ns:Identifier>
-			<ns:What ns:code="ObservationEvent" ns:codespace="http://ucore.gov/ucore/2.0/codespace/"/>
+			<ns:What>
+					<xsl:attribute name="ns:code"><xsl:value-of select="tns:SensorObservationInfo/tns:SensorInfo/tns:name"/></xsl:attribute>
+					<xsl:attribute name="ns:codespace">http://ucore.gov/ucore/2.0/codespace/</xsl:attribute>
+			</ns:What>
 		</ns:Event>
         <ns:Location>
 			<xsl:attribute name="id"><xsl:value-of select="$LocationID"/></xsl:attribute>
