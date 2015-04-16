@@ -30,7 +30,7 @@ import com.leidos.xchangecore.core.infrastructure.service.CommunicationsService;
 import com.leidos.xchangecore.core.infrastructure.service.DirectoryService;
 import com.leidos.xchangecore.core.infrastructure.service.NotificationService;
 import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
-import com.leidos.xchangecore.core.infrastructure.util.UicdsStringUtil;
+import com.leidos.xchangecore.core.infrastructure.util.StringUtil;
 
 /**
  * The broadcast service implementation distributes the message by the following process:
@@ -251,7 +251,7 @@ public class BroadcastServiceImpl
 
             notification = messages.toArray(notification);
             log.debug("===> sending Core2Core message: array size=" + notification.length);
-            notificationService.notify(UicdsStringUtil.getSubmitterResourceInstanceName(address),
+            notificationService.notify(StringUtil.getSubmitterResourceInstanceName(address),
                 notification);
         } catch (Throwable e) {
             log.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to " +

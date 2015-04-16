@@ -75,7 +75,7 @@ import com.leidos.xchangecore.core.infrastructure.util.DigestConstant;
 import com.leidos.xchangecore.core.infrastructure.util.InfrastructureNamespaces;
 import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
 import com.leidos.xchangecore.core.infrastructure.util.UUIDUtil;
-import com.leidos.xchangecore.core.infrastructure.util.UicdsStringUtil;
+import com.leidos.xchangecore.core.infrastructure.util.StringUtil;
 
 /**
  * The ResourceManagementService implementation.
@@ -1174,7 +1174,7 @@ public class ResourceManagementServiceImpl implements ResourceManagementService,
 
             notification = messages.toArray(notification);
             log.debug("===> sending Core2Core message: array size=" + notification.length);
-            notificationService.notify(UicdsStringUtil.getSubmitterResourceInstanceName(address),
+            notificationService.notify(StringUtil.getSubmitterResourceInstanceName(address),
                     notification);
         } catch (Throwable e) {
             log.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to "
