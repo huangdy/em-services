@@ -1,52 +1,43 @@
 package com.leidos.xchangecore.core.em.model;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.Table;
 
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 
 /**
  * Represents an incident inside the Core.
- * 
+ *
  * @author topher
  * @ssdd
- * 
+ *
  */
 @Entity
-@Table(name = "INCIDENT")
 public class Incident {
 
     @Id
-    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Lob
-    @Column(name = "SUMMARY")
     @Field(index = Index.TOKENIZED)
     private String summary;
 
     // this is the same as the interest groupID returned from the
     // createINterestGroup() call
-    @Column(name = "INCIDENT_ID")
     @Field(index = Index.TOKENIZED)
     private String incidentId;
 
-    @Column(name = "WORKPRODUCT_ID")
     @Field(index = Index.TOKENIZED)
     private String workProductID;
 
-    @Column(name = "LATITUDE")
     @Field(index = Index.TOKENIZED)
     private double latitude;
 
-    @Column(name = "LONGITUDE")
     @Field(index = Index.TOKENIZED)
     private double longitude;
 
@@ -54,7 +45,7 @@ public class Incident {
 
     /**
      * Construct a new incident.
-     * 
+     *
      * @ssdd
      */
     public Incident() {
@@ -64,20 +55,20 @@ public class Incident {
 
     /**
      * Construct a new incident with the provided incident ID.
-     * 
+     *
      * @param incidentID the incident id
      * @ssdd
      */
     public Incident(String incidentID) {
 
-        this.setIncidentId(incidentID);
+        setIncidentId(incidentID);
     }
 
     /**
      * Return the primary key of the incident.
-     * 
+     *
      * @return the id
-     * 
+     *
      * @ssdd
      */
     public Integer getId() {
@@ -87,7 +78,7 @@ public class Incident {
 
     /**
      * Gets the incident id.
-     * 
+     *
      * @return the incident id
      * @ssdd
      */
@@ -98,7 +89,7 @@ public class Incident {
 
     /**
      * Gets the latitude.
-     * 
+     *
      * @return the latitude
      * @ssdd
      */
@@ -109,7 +100,7 @@ public class Incident {
 
     /**
      * Gets the longitude.
-     * 
+     *
      * @return the longitude
      * @ssdd
      */
@@ -120,9 +111,9 @@ public class Incident {
 
     /**
      * Return the summary of the incident.
-     * 
+     *
      * @return the summary
-     * 
+     *
      * @ssdd
      */
     public String getSummary() {
@@ -132,18 +123,18 @@ public class Incident {
 
     /**
      * Gets the work product id.
-     * 
+     *
      * @return the work product id global identifier for this incident
      * @ssdd
      */
     public String getWorkProductID() {
 
-        return this.workProductID;
+        return workProductID;
     }
 
     /**
      * Checks if is active.
-     * 
+     *
      * @return true, if is active
      * @ssdd
      */
@@ -154,7 +145,7 @@ public class Incident {
 
     /**
      * Sets the active.
-     * 
+     *
      * @param active the new active
      * @ssdd
      */
@@ -165,7 +156,7 @@ public class Incident {
 
     /**
      * Set the primary key of the incident.
-     * 
+     *
      * @param id
      * @ssdd
      */
@@ -176,18 +167,18 @@ public class Incident {
 
     /**
      * Sets the incident id.
-     * 
+     *
      * @param incidentID the new incident id
      * @ssdd
      */
     public void setIncidentId(String incidentID) {
 
-        this.incidentId = incidentID;
+        incidentId = incidentID;
     }
 
     /**
      * Sets the latitude.
-     * 
+     *
      * @param latitude the new latitude
      * @ssdd
      */
@@ -198,7 +189,7 @@ public class Incident {
 
     /**
      * Sets the longitude.
-     * 
+     *
      * @param longitude the new longitude
      * @ssdd
      */
@@ -209,7 +200,7 @@ public class Incident {
 
     /**
      * Set the summary of the incident.
-     * 
+     *
      * @param summary
      * @ssdd
      */
@@ -220,7 +211,7 @@ public class Incident {
 
     /**
      * Sets the work product id.
-     * 
+     *
      * @param workProductID the new work product id global identifier for this incident
      * @ssdd
      */
