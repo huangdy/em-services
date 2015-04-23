@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.leidos.xchangecore.core.dao.hb.GenericHibernateDAO;
 import com.leidos.xchangecore.core.em.dao.IncidentDAO;
@@ -17,6 +18,7 @@ import com.leidos.xchangecore.core.em.model.Incident;
  *
  * @author created: package: com.saic.dctd.uicds.core.dao.hb
  */
+@Transactional
 public class IncidentDAOHibernate
     extends GenericHibernateDAO<Incident, Integer>
     implements IncidentDAO {
@@ -24,14 +26,14 @@ public class IncidentDAOHibernate
     @Override
     public void delete(String incidentId, boolean isDelete) {
 
-        Incident incident = findByIncidentID(incidentId);
-        if (incident == null) {
-            return;
-        }
+        final Incident incident = findByIncidentID(incidentId);
 
-        if (isDelete == true) {
+        if (incident == null)
+            return;
+
+        if (isDelete == true)
             makeTransient(incident);
-        } else {
+        else {
             incident.setActive(false);
             makePersistent(incident);
         }
@@ -51,19 +53,17 @@ public class IncidentDAOHibernate
 
     private List<Incident> findAllIncidents(boolean isActive) {
 
-        List<Incident> incidents = super.findAll();
+        final List<Incident> incidents = super.findAll();
         List<Incident> returnIncidents = null;
         if (incidents.size() >= 0) {
             returnIncidents = new ArrayList<Incident>();
-            for (Incident incident : incidents) {
+            for (final Incident incident : incidents)
                 // this is a little bit of tricky.
                 // if isActive is true means we will return all the incidents
                 // it doesn't matter it's active/inactive
                 // if isActive is false then we will only return the status is inActive
-                if (isActive == true || incident.isActive() == false) {
+                if (isActive == true || incident.isActive() == false)
                     returnIncidents.add(incident);
-                }
-            }
         }
 
         return returnIncidents;
@@ -73,20 +73,18 @@ public class IncidentDAOHibernate
     @Override
     public Incident findByIncidentID(String incidentId) {
 
-        List<Incident> results = findByCriteria(Restrictions.eq("incidentId", incidentId));
-        if (!results.isEmpty()) {
+        final List<Incident> results = findByCriteria(Restrictions.eq("incidentId", incidentId));
+        if (!results.isEmpty())
             return results.get(0);
-        }
         return null;
     }
 
     @Override
     public boolean isActive(String incidentId) {
 
-        Incident incident = findByIncidentID(incidentId);
-        if (incident == null) {
+        final Incident incident = findByIncidentID(incidentId);
+        if (incident == null)
             return true;
-        }
 
         return incident.isActive();
     }
