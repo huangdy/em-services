@@ -93,13 +93,16 @@ import com.vividsolutions.jts.geom.Polygon;
  * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class MapServiceImpl implements MapService, ServiceNamespaces {
+public class MapServiceImpl
+implements MapService, ServiceNamespaces {
 
-    Logger log = LoggerFactory.getLogger(MapServiceImpl.class);
+    private static final String PRECISB_NS = "http://www.saic.com/precis/2009/06/base";
 
+    private final Logger logger = LoggerFactory.getLogger(MapServiceImpl.class);
     private WorkProductService workProductService;
     private DirectoryService directoryService;
     private ConfigurationService configurationService;
+
     private ShapefileIngester shapefileIngester;
 
     private String xsltFilePath;
@@ -110,37 +113,35 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
     private final GeoGeometryFactory geometryFactory = new GeoGeometryFactory();
 
-    private static final String PRECISB_NS = "http://www.saic.com/precis/2009/06/base";
-
     @SuppressWarnings("deprecation")
     private void addCollectionTypeToDigest(DigestDocument digest, List<String> locationIds) {
 
-        SchemaType type = CollectionType.type;
-        CollectionType colType = CollectionType.Factory.newInstance();
+        final SchemaType type = CollectionType.type;
+        final CollectionType colType = CollectionType.Factory.newInstance();
         colType.setId(UUIDUtil.getID("Collection"));
 
-        IdentifierType identifier = colType.addNewIdentifier();
+        final IdentifierType identifier = colType.addNewIdentifier();
         identifier.addNewLabel().set("Label");
         identifier.setCode("label");
         identifier.setCodespace("http://uicds.us/identifier");
         identifier.set("Collection (geo)");
 
-        StringType description = colType.addNewDescriptor();
+        final StringType description = colType.addNewDescriptor();
         description.set("Collection of LocationInfo of all features");
 
-        WhatType what = colType.addNewWhat();
+        final WhatType what = colType.addNewWhat();
         what.setCode("GroupOfLocations");
         what.setCodespace(InfrastructureNamespaces.NS_UCORE_CODESPACE);
 
-        for (String locationId : locationIds) {
-            ThingRefType ref = colType.addNewThingRef();
-            List<String> arg0 = new ArrayList<String>();
+        for (final String locationId : locationIds) {
+            final ThingRefType ref = colType.addNewThingRef();
+            final List<String> arg0 = new ArrayList<String>();
             arg0.add(locationId);
             ref.setRef(arg0);
         }
 
         XmlUtil.substitute(digest.getDigest().addNewThingAbstract(),
-                InfrastructureNamespaces.NS_UCORE, DigestConstant.S_Collection, type, colType);
+            InfrastructureNamespaces.NS_UCORE, DigestConstant.S_Collection, type, colType);
     }
 
     /**
@@ -153,10 +154,10 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
      */
     protected Node coerce(byte[] bytes) throws Exception {
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document document = db.parse(new ByteArrayInputStream(new String(bytes).getBytes("UTF-8")));
+        final DocumentBuilder db = dbf.newDocumentBuilder();
+        final Document document = db.parse(new ByteArrayInputStream(new String(bytes).getBytes("UTF-8")));
         return document.getDocumentElement();
     }
 
@@ -170,13 +171,13 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
      */
     protected XmlObject coerce(Node node) throws Exception {
 
-        StringWriter writer = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(writer, true);
+        final StringWriter writer = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(writer, true);
         final DOMSource input = new DOMSource(node);
-        Result output = new StreamResult(printWriter);
+        final Result output = new StreamResult(printWriter);
         try {
-            TransformerFactory xsltTransformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = xsltTransformerFactory.newTransformer(); // id
+            final TransformerFactory xsltTransformerFactory = TransformerFactory.newInstance();
+            final Transformer transformer = xsltTransformerFactory.newTransformer(); // id
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -184,8 +185,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
             transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/xml");
             transformer.transform(input, output);
-        } catch (Exception e) {
-            log.error("coerce: " + e.getMessage());
+        } catch (final Exception e) {
+            logger.error("coerce: " + e.getMessage());
             return null;
         }
         printWriter.flush();
@@ -204,7 +205,7 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
      */
     protected Node createDefaultMap(String incidentId, Geometry geometry) throws Exception {
 
-        ViewContext context = new ViewContext();
+        final ViewContext context = new ViewContext();
         context.setVersion("1.1.0");
         context.setTitle("Default Map for Incident '" + incidentId + "'");
         context.setAbstract("Default map for incident with id '" + incidentId + "'");
@@ -213,40 +214,48 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
         context.getKeywords().add("UICDS");
         context.setWindow(new Rectangle(600, 500));
 
-        Envelope extent = geometry == null ? new Envelope(-125.0, -66.0, 20.0, 50.0) : geometry
-                .getEnvelopeInternal();
+        final Envelope extent = geometry == null ? new Envelope(-125.0, -66.0, 20.0, 50.0) : geometry.getEnvelopeInternal();
         context.setBoundingBox(extent);
 
         // determine url to access features via wms controller
-        String url = configurationService.getRestBaseURL() + incidentId + "/features?";
+        final String url = configurationService.getRestBaseURL() + incidentId + "/features?";
 
         // base map layer
-        Server server = new Server(new URI("http://labs.metacarta.com/wms/vmap0"), "OGC:WMS",
-                "1.1.0", "Metacarta");
+        Server server = new Server(new URI("http://labs.metacarta.com/wms/vmap0"),
+            "OGC:WMS",
+            "1.1.0",
+            "Metacarta");
         context.getLayers().add(
-                new Layer(server, "basic", "Base Map", "", null, null, "EPSG:4326", false, false,
-                        null));
+            new Layer(server, "basic", "Base Map", "", null, null, "EPSG:4326", false, false, null));
 
         // features layer
         server = new Server(new URI(url), "OGC:WMS", "1.1.0", "UICDS Core Map Service");
         context.getLayers().add(
-                new Layer(server, "", "Incident Features", "", null, null, "EPSG:4326", false,
-                        false, null));
+            new Layer(server,
+                "",
+                "Incident Features",
+                "",
+                null,
+                null,
+                "EPSG:4326",
+                false,
+                false,
+                null));
 
         // marshal map out to bytes
-        MarshalContext ctx = new MarshalContext(WmsModule.class);
+        final MarshalContext ctx = new MarshalContext(WmsModule.class);
         ctx.setProperty("strictMode", true); // only schema-compliant output
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         ctx.marshal(context, out);
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toString().getBytes("UTF-8"));
+        final ByteArrayInputStream in = new ByteArrayInputStream(out.toString().getBytes("UTF-8"));
         Node node = null;
         int retries = 4;
         while (retries-- > 0) {
             in.reset();
             try {
                 node = DOMUtils.parseDocument(in).getDocumentElement();
-            } catch (Throwable e) {
-                log.error("createDefaultMap: parse DOM's node: " + e.getMessage());
+            } catch (final Throwable e) {
+                logger.error("createDefaultMap: parse DOM's node: " + e.getMessage());
                 synchronized (this) {
                     Thread.sleep(500);
                 }
@@ -272,29 +281,26 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
         layer = fixNamespace(layer);
 
-        WorkProduct product = new WorkProduct();
-        if (incidentId != null) {
+        final WorkProduct product = new WorkProduct();
+        if (incidentId != null)
             product.associateInterestGroup(incidentId);
-        }
 
         product.setProduct(coerce(layer));
         product.setProductType(LayerType);
-        Date date = new Date();
+        final Date date = new Date();
         product.setCreatedDate(date);
         product.setUpdatedDate(date);
 
         // Digest Magic
-        if (xsltFilePath == null) {
+        if (xsltFilePath == null)
             xsltFilePath = "xslt/WPDigest.xsl";
-        }
-        if (iconConfigXmlFilePath == null) {
+        if (iconConfigXmlFilePath == null)
             iconConfigXmlFilePath = "xml/types_icons.xml";
-        }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-        DigestDocument digest = digestGenerator.createDigest(product);
+        final DigestDocument digest = digestGenerator.createDigest(product);
         product.setDigest(digest);
 
-        ProductPublicationStatus status = workProductService.publishProduct(product);
+        final ProductPublicationStatus status = workProductService.publishProduct(product);
 
         return status;
     }
@@ -316,33 +322,30 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
         map = fixNamespace(map);
 
-        WorkProduct product = new WorkProduct();
+        final WorkProduct product = new WorkProduct();
         // Get a work product id
-        String productID = UUIDUtil.getID(MapService.MapType);
+        final String productID = UUIDUtil.getID(MapService.MapType);
         ((Element) map).setAttribute("id", productID); // update id to point to work product
         product.setProductID(productID);
 
-        if (incidentId != null) {
+        if (incidentId != null)
             product.associateInterestGroup(incidentId);
-        }
         product.setProduct(coerce(map));
         product.setProductType(MapType);
-        Date date = new Date();
+        final Date date = new Date();
         product.setCreatedDate(date);
         product.setUpdatedDate(date);
 
         // Digest Magic
-        if (xsltFilePath == null) {
+        if (xsltFilePath == null)
             xsltFilePath = "xslt/WPDigest.xsl";
-        }
-        if (iconConfigXmlFilePath == null) {
+        if (iconConfigXmlFilePath == null)
             iconConfigXmlFilePath = "xml/types_icons.xml";
-        }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-        DigestDocument digest = digestGenerator.createDigest(product);
+        final DigestDocument digest = digestGenerator.createDigest(product);
         product.setDigest(digest);
 
-        ProductPublicationStatus status = workProductService.publishProduct(product);
+        final ProductPublicationStatus status = workProductService.publishProduct(product);
 
         return status;
     }
@@ -362,7 +365,7 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus deleteLayer(String incidentId, String layerId) throws Exception {
 
-        WorkProduct layer = getWorkProductService().getProduct(layerId);
+        final WorkProduct layer = getWorkProductService().getProduct(layerId);
         ProductPublicationStatus status;
 
         if (layer == null) {
@@ -375,14 +378,13 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
         // if it's still not closed, we need to close it first
         if (layer.isActive() == true) {
             status = getWorkProductService().closeProduct(
-                    WorkProductHelper.getWorkProductIdentification(layer));
-            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
+                WorkProductHelper.getWorkProductIdentification(layer));
+            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus))
                 return status;
-            }
         }
 
         return getWorkProductService().archiveProduct(
-                WorkProductHelper.getWorkProductIdentification(layer));
+            WorkProductHelper.getWorkProductIdentification(layer));
     }
 
     /**
@@ -400,7 +402,7 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus deleteMap(String incidentId, String mapId) throws Exception {
 
-        WorkProduct map = getWorkProductService().getProduct(mapId);
+        final WorkProduct map = getWorkProductService().getProduct(mapId);
         ProductPublicationStatus status;
 
         if (map == null) {
@@ -413,40 +415,38 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
         // if it's still not closed, we need to close it first
         if (map.isActive() == true) {
             status = getWorkProductService().closeProduct(
-                    WorkProductHelper.getWorkProductIdentification(map));
-            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
+                WorkProductHelper.getWorkProductIdentification(map));
+            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus))
                 return status;
-            }
         }
 
         return getWorkProductService().archiveProduct(
-                WorkProductHelper.getWorkProductIdentification(map));
+            WorkProductHelper.getWorkProductIdentification(map));
     }
 
     private Node fixNamespace(Node el) {
 
-        if (WMC.NAMESPACE.equals(el.getNamespaceURI())) {
+        if (WMC.NAMESPACE.equals(el.getNamespaceURI()))
             return el;
-        }
         try {
-            Document document = el.getOwnerDocument();
+            final Document document = el.getOwnerDocument();
             // create new version of the node
-            Element newEl = document.createElementNS(WMC.NAMESPACE, el.getLocalName());
+            final Element newEl = document.createElementNS(WMC.NAMESPACE, el.getLocalName());
             newEl.setPrefix("wmc");
             // insert the new node before the old one
             el.getParentNode().insertBefore(newEl, el);
             // walk the children and re-parent them
             Node child = el.getFirstChild();
             while (child != null) {
-                Node nextChild = child.getNextSibling();
+                final Node nextChild = child.getNextSibling();
                 el.removeChild(child);
                 newEl.appendChild(child);
                 child = nextChild;
             }
             el.getParentNode().removeChild(el);
             return newEl;
-        } catch (Throwable t) {
-            log.error("Error fixing namespace", t);
+        } catch (final Throwable t) {
+            logger.error("Error fixing namespace", t);
             return el;
         }
     }
@@ -480,8 +480,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public Node getLayer(Node packageId) throws Exception {
 
-        Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
-        String workProductId = workProductIdNode.getTextContent();
+        final Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
+        final String workProductId = workProductIdNode.getTextContent();
 
         return getLayer(workProductId);
 
@@ -502,12 +502,11 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public Node getLayer(String workProductId) throws Exception {
 
-        WorkProduct layer = getWorkProductService().getProduct(workProductId);
+        final WorkProduct layer = getWorkProductService().getProduct(workProductId);
         if (layer != null) {
-            WorkProductDocument.WorkProduct wpd = WorkProductHelper.toWorkProduct(layer);
-            if (wpd != null) {
+            final WorkProductDocument.WorkProduct wpd = WorkProductHelper.toWorkProduct(layer);
+            if (wpd != null)
                 return wpd.getDomNode();
-            }
         }
         return null;
     }
@@ -526,8 +525,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     public Collection<WorkProduct> getLayers(String incidentId) throws Exception {
 
         // log.debug("Retrieving layers for incident '" + incidentId + "'");
-        List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(incidentId,
-                LayerType);
+        final List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(
+            incidentId, LayerType);
         return products;
     }
 
@@ -544,8 +543,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public WorkProduct getLayerWP(Node packageId) throws Exception {
 
-        Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
-        String workProductId = workProductIdNode.getTextContent();
+        final Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
+        final String workProductId = workProductIdNode.getTextContent();
 
         return getLayerWP(workProductId);
 
@@ -583,8 +582,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     public Node getMap(Node packageId) throws Exception {
 
         // log.debug("Retrieving map '" + mapId + "' for incident '" + incidentId + "'");
-        Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
-        String workProductId = workProductIdNode.getTextContent();
+        final Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
+        final String workProductId = workProductIdNode.getTextContent();
 
         return getMap(workProductId);
         // WorkProduct map = getWorkProductService().getProduct(workProductId);
@@ -609,12 +608,11 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public Node getMap(String workProductId) throws Exception {
 
-        WorkProduct map = getWorkProductService().getProduct(workProductId);
+        final WorkProduct map = getWorkProductService().getProduct(workProductId);
         if (map != null) {
-            WorkProductDocument.WorkProduct wpd = WorkProductHelper.toWorkProduct(map);
-            if (wpd != null) {
+            final WorkProductDocument.WorkProduct wpd = WorkProductHelper.toWorkProduct(map);
+            if (wpd != null)
                 return wpd.getDomNode();
-            }
         }
         return null;
     }
@@ -633,8 +631,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     public Collection<WorkProduct> getMaps(String incidentId) throws Exception {
 
         // log.debug("Retrieving maps for incident '" + incidentId + "'");
-        List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(incidentId,
-                MapType);
+        final List<WorkProduct> products = getWorkProductService().findByInterestGroupAndType(
+            incidentId, MapType);
         return products;
     }
 
@@ -652,8 +650,8 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     public WorkProduct getMapWP(Node packageId) throws Exception {
 
         // log.debug("Retrieving map '" + mapId + "' for incident '" + incidentId + "'");
-        Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
-        String workProductId = workProductIdNode.getTextContent();
+        final Node workProductIdNode = DOMUtils.getChild(packageId, "Identifier");
+        final String workProductId = workProductIdNode.getTextContent();
 
         return getMapWP(workProductId);
     }
@@ -687,12 +685,11 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
     private String getWorkProductId(Node node) {
 
-        Node incidentIdNode = DOMUtils.getChild(node, new QName(PRECISB_NS, "Identifier"));
-        if (incidentIdNode != null) {
+        final Node incidentIdNode = DOMUtils.getChild(node, new QName(PRECISB_NS, "Identifier"));
+        if (incidentIdNode != null)
             return incidentIdNode.getTextContent();
-        } else {
+        else
             return null;
-        }
     }
 
     /** {@inheritDoc} */
@@ -716,16 +713,15 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public void handleIncidentState(IncidentStateNotificationMessage message) {
 
-        if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW)
-                || message.getState().equals(InterestGroupStateNotificationMessage.State.JOIN)) {
-            String incidentId = message.getIncidentInfo().getId();
+        if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW) ||
+            message.getState().equals(InterestGroupStateNotificationMessage.State.JOIN)) {
+            final String incidentId = message.getIncidentInfo().getId();
 
             // locate the work product for the new incident
-            String wpId = message.getIncidentInfo().getWorkProductIdentification().getIdentifier()
-                    .getStringValue();
-            WorkProduct product = getWorkProductService().getProduct(wpId);
+            final String wpId = message.getIncidentInfo().getWorkProductIdentification().getIdentifier().getStringValue();
+            final WorkProduct product = getWorkProductService().getProduct(wpId);
             if (product == null) {
-                log.warn("Failed to retrieve work product for newly created incident");
+                logger.warn("Failed to retrieve work product for newly created incident");
                 return;
             }
 
@@ -733,24 +729,22 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
             IncidentDocument incidentDoc = null;
             try {
                 incidentDoc = (IncidentDocument) product.getProduct();
-            } catch (Exception e) {
-                log.error("Error parsing Incident work product", e);
+            } catch (final Exception e) {
+                logger.error("Error parsing Incident work product", e);
                 return;
             }
 
-            if (incidentDoc == null) {
+            if (incidentDoc == null)
                 return;
-            }
-            UICDSIncidentType incident = incidentDoc.getIncident();
+            final UICDSIncidentType incident = incidentDoc.getIncident();
             Geometry geometry = null;
             try {
                 geometry = parseGeometry(incident);
-            } catch (Throwable e) {
-                log.info("No Geometry information specified in Incident document");
+            } catch (final Throwable e) {
+                logger.info("No Geometry information specified in Incident document");
             }
-            if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW)) {
+            if (message.getState().equals(InterestGroupStateNotificationMessage.State.NEW))
                 submitDefaultMap(incidentId, incident, geometry);
-            }
         } else if (message.getState().equals(InterestGroupStateNotificationMessage.State.RESIGN)) {
             // remove incident
             // String url = ef.getUrl(getConfigurationService());
@@ -774,25 +768,27 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     private Coordinate parseCoordinateUsingDOM(Element parent) {
 
         Element coord = DOMUtils.getChild(parent, "LocationTwoDimensionalGeographicCoordinate");
-        if (coord == null) {
+        if (coord == null)
             coord = parent;
-        }
 
-        Element lon = DOMUtils.getChild(coord, "GeographicCoordinateLongitude");
-        Double lonDegree = Coerce
-                .toDouble(DOMUtils.getChildText(lon, "LongitudeDegreeValue"), null);
-        Double lonMinute = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeMinuteValue"), 0.0);
-        Double lonSecond = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeSecondValue"), 0.0);
+        final Element lon = DOMUtils.getChild(coord, "GeographicCoordinateLongitude");
+        Double lonDegree = Coerce.toDouble(DOMUtils.getChildText(lon, "LongitudeDegreeValue"), null);
+        final Double lonMinute = Coerce.toDouble(
+            DOMUtils.getChildText(lon, "LongitudeMinuteValue"), 0.0);
+        final Double lonSecond = Coerce.toDouble(
+            DOMUtils.getChildText(lon, "LongitudeSecondValue"), 0.0);
 
-        Element lat = DOMUtils.getChild(coord, "GeographicCoordinateLatitude");
+        final Element lat = DOMUtils.getChild(coord, "GeographicCoordinateLatitude");
         Double latDegree = Coerce.toDouble(DOMUtils.getChildText(lat, "LatitudeDegreeValue"), null);
-        Double latMinute = Coerce.toDouble(DOMUtils.getChildText(lat, "LatitudeMinuteValue"), 0.0);
-        Double latSecond = Coerce.toDouble(DOMUtils.getChildText(lat, "LatitudeSecondValue"), 0.0);
+        final Double latMinute = Coerce.toDouble(DOMUtils.getChildText(lat, "LatitudeMinuteValue"),
+            0.0);
+        final Double latSecond = Coerce.toDouble(DOMUtils.getChildText(lat, "LatitudeSecondValue"),
+            0.0);
 
         // didn't specify coordinates properly
         if (lonDegree == null || latDegree == null) {
-            log.warn("Coordinates were not specified properly in Incident work product, "
-                    + "unable to determine location for default map");
+            logger.warn("Coordinates were not specified properly in Incident work product, "
+                + "unable to determine location for default map");
             return null;
         }
 
@@ -814,18 +810,17 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     protected Geometry parseGeometry(UICDSIncidentType incident) {
 
         // System.out.println("parseGeometry: incident=[" + incident.toString() + "]");
-        LocationType location = incident.getIncidentLocationArray(0);
-        AreaType[] areas = location.getLocationAreaArray();
+        final LocationType location = incident.getIncidentLocationArray(0);
+        final AreaType[] areas = location.getLocationAreaArray();
         if (areas.length > 0) {
-            AreaType area = location.getLocationAreaArray(0);
+            final AreaType area = location.getLocationAreaArray(0);
             try {
                 return parseGeometryUsingDOM(area);
-            } catch (Throwable t) {
-                log.error("Error parsing spatial extent from Incident work product", t);
+            } catch (final Throwable t) {
+                logger.error("Error parsing spatial extent from Incident work product", t);
             }
-        } else {
-            log.warn("Unable to find LocationArea within Incident, cannot create default map");
-        }
+        } else
+            logger.warn("Unable to find LocationArea within Incident, cannot create default map");
         return null;
     }
 
@@ -849,76 +844,70 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
          */
 
         Node root = area.getDomNode().getParentNode().getParentNode(); // incident node
-        if (root == null) {
+        if (root == null)
             return null;
-        }
-        String domStr = DOMUtils.toString(root);
-        StringReader reader = new StringReader(domStr);
+        final String domStr = DOMUtils.toString(root);
+        final StringReader reader = new StringReader(domStr);
         try {
             root = DOMUtils.parseDocument(reader);
-        } catch (Exception e) {
-            log.error("Error parsing xml from incident while determining spatial extent", e);
+        } catch (final Exception e) {
+            logger.error("Error parsing xml from incident while determining spatial extent", e);
             return null;
         }
-        if (root == null) {
+        if (root == null)
             return null;
-        }
         root = ((Document) root).getDocumentElement();
-        Node locNode = DOMUtils.getChild(root, area.getDomNode().getParentNode().getLocalName());
-        if (locNode == null) {
+        final Node locNode = DOMUtils.getChild(root,
+            area.getDomNode().getParentNode().getLocalName());
+        if (locNode == null)
             return null;
-        }
-        Node areaNode = DOMUtils.getChild(locNode, area.getDomNode().getLocalName());
-        if (areaNode == null) {
+        final Node areaNode = DOMUtils.getChild(locNode, area.getDomNode().getLocalName());
+        if (areaNode == null)
             return null;
-        }
 
-        List<Element> polyCoords = DOMUtils
-                .getChildren(areaNode, "AreaPolygonGeographicCoordinate");
+        final List<Element> polyCoords = DOMUtils.getChildren(areaNode,
+            "AreaPolygonGeographicCoordinate");
         if (!polyCoords.isEmpty()) {
 
             int i = 0;
             Coordinate[] carr = new Coordinate[polyCoords.size()];
-            for (Element polyCoord : polyCoords) {
+            for (final Element polyCoord : polyCoords)
                 carr[i++] = parseCoordinateUsingDOM(polyCoord);
-            }
 
             // make sure last point is same as first point for valid polygon
             if (!carr[carr.length - 1].equals(carr[0])) {
-                Coordinate[] temp = new Coordinate[carr.length + 1];
-                for (i = 0; i < carr.length; ++i) {
+                final Coordinate[] temp = new Coordinate[carr.length + 1];
+                for (i = 0; i < carr.length; ++i)
                     temp[i] = carr[i];
-                }
                 temp[i] = carr[0];
                 carr = temp;
             }
 
             // create polygon so we can get the bounding box for the area
-            LinearRing shell = geometryFactory.createLinearRing(carr);
-            Polygon poly = geometryFactory.createPolygon(shell, null);
+            final LinearRing shell = geometryFactory.createLinearRing(carr);
+            final Polygon poly = geometryFactory.createPolygon(shell, null);
             return poly;
 
         } else {
             // look for circle
 
-            Element circle = DOMUtils.getChild(areaNode, "AreaCircularRegion");
+            final Element circle = DOMUtils.getChild(areaNode, "AreaCircularRegion");
             if (circle != null) {
-                Element center = DOMUtils.getChild(circle, "CircularRegionCenterCoordinate");
-                Element rad = DOMUtils.getChild(circle, "CircularRegionRadiusLengthMeasure");
-                String r = DOMUtils.getChildTextNS(rad, "http://niem.gov/niem/niem-core/2.0",
-                        "MeasurePointValue", "1.0");
-                Double radius = Coerce.toDouble(r, 1.0);
-                Coordinate coord = parseCoordinateUsingDOM(center);
+                final Element center = DOMUtils.getChild(circle, "CircularRegionCenterCoordinate");
+                final Element rad = DOMUtils.getChild(circle, "CircularRegionRadiusLengthMeasure");
+                final String r = DOMUtils.getChildTextNS(rad, "http://niem.gov/niem/niem-core/2.0",
+                    "MeasurePointValue", "1.0");
+                final Double radius = Coerce.toDouble(r, 1.0);
+                final Coordinate coord = parseCoordinateUsingDOM(center);
                 if (coord != null) {
-                    Point point = geometryFactory.createPoint(coord);
+                    final Point point = geometryFactory.createPoint(coord);
                     if (radius > 0.0) {
-                        Geometry geometry = geometryFactory.createCircle(point, radius);
+                        final Geometry geometry = geometryFactory.createCircle(point, radius);
                         return geometry;
-                    } else if (radius == 0.0) {
+                    } else if (radius == 0.0)
                         return point;
-                    } else {
-                        log.warn("Invalid radius specified for incident circle.  Must be non-negative");
-                    }
+                    else
+                        logger.warn("Invalid radius specified for incident circle.  Must be non-negative");
                 }
             }
         }
@@ -937,7 +926,7 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public void productChangeNotificationHandler(ProductChangeNotificationMessage message) {
 
-        log.debug("Receive productChangeNotification for wp ID: " + message.getProductID());
+        logger.debug("Receive productChangeNotification for wp ID: " + message.getProductID());
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {
@@ -992,12 +981,13 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
      * @ssdd
      */
     protected ProductPublicationStatus submitDefaultMap(String incidentId,
-            UICDSIncidentType incident, Geometry geometry) {
+                                                        UICDSIncidentType incident,
+                                                        Geometry geometry) {
 
         ProductPublicationStatus status = null;
         try {
             if (geometry != null) {
-                Node map = createDefaultMap(incidentId, geometry); // build the view context
+                final Node map = createDefaultMap(incidentId, geometry); // build the view context
                 status = createMap(incidentId, map); // persist it as a work product
 
                 // if (status.getStatus().equals(ProductPublicationStatus.SuccessStatus)) {
@@ -1007,12 +997,11 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
                 // log.debug("Created default map for new incident " + incidentId);
                 // }
 
-            } else {
-                log.warn("No area defined for incident " + incidentId
-                        + ", not creating default map");
-            }
-        } catch (Throwable t) {
-            log.error("Error creating default map for new incident with id " + incidentId, t);
+            } else
+                logger.warn("No area defined for incident " + incidentId +
+                    ", not creating default map");
+        } catch (final Throwable t) {
+            logger.error("Error creating default map for new incident with id " + incidentId, t);
         }
         return status;
     }
@@ -1030,40 +1019,38 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     @SuppressWarnings("unchecked")
     public List<ProductPublicationStatus> submitShapefile(String incidentId, byte[] bytes)
-            throws Exception {
+        throws Exception {
 
         if (getShapefileIngester() == null) {
-            log.warn("No Shapefile Ingester configured with MapService. Ignoring request");
+            logger.warn("No Shapefile Ingester configured with MapService. Ignoring request");
             return Collections.EMPTY_LIST;
         }
 
-        List<ProductPublicationStatus> results = new ArrayList<ProductPublicationStatus>();
-        List<String> ids = new ArrayList<String>();
+        final List<ProductPublicationStatus> results = new ArrayList<ProductPublicationStatus>();
+        final List<String> ids = new ArrayList<String>();
 
         // create a new WorkProduct for the shapefile
         // needs to be XML instead of just the binary content of the shapefile
         // so we'll use an ATOM entry with the binary shapefile as "content"
-        Entry entry = new Entry();
+        final Entry entry = new Entry();
         entry.setTitle("shapefile");
-        if (incidentId == null) {
+        if (incidentId == null)
             entry.setSummary("a shapefile");
-        } else {
+        else
             entry.setSummary("a shapefile for Incident: " + incidentId);
-        }
         entry.setContent(new Content("application/shz", bytes));
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         new MarshalContext(AtomModule.class).marshal(entry, out);
-        byte[] content = out.toByteArray();
+        final byte[] content = out.toByteArray();
         out.close();
-        WorkProduct product = new WorkProduct();
-        if (incidentId != null) {
+        final WorkProduct product = new WorkProduct();
+        if (incidentId != null)
             product.associateInterestGroup(incidentId);
-        }
         // TODO do we have better way to do this ?
         product.setProduct(XmlObject.Factory.parse(new String(content)));
 
         product.setProductType("Shapefile");
-        ProductPublicationStatus status = getWorkProductService().publishProduct(product);
+        final ProductPublicationStatus status = getWorkProductService().publishProduct(product);
         if (status.getStatus().equals(ProductPublicationStatus.SuccessStatus)) {
             ids.add(status.getProduct().getProductID());
             results.add(status);
@@ -1071,25 +1058,25 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
         // create new WorkProducts for each feature parsed from the shapefile
         // TODO - Do we need to make sure the bytes is enforced to be UTF-8 ???
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        List<WorkProduct> features = getShapefileIngester().parseFeatures(incidentId, in);
+        final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        final List<WorkProduct> features = getShapefileIngester().parseFeatures(incidentId, in);
 
-        DigestDocument productDigest = DigestDocument.Factory.newInstance();
+        final DigestDocument productDigest = DigestDocument.Factory.newInstance();
         productDigest.addNewDigest();
-        List<String> locationIds = new ArrayList<String>();
-        for (WorkProduct feature : features) {
+        final List<String> locationIds = new ArrayList<String>();
+        for (final WorkProduct feature : features) {
             if (feature.getDigest() != null) {
-                ThingType[] locationArray = feature.getDigest().getDigest().getThingAbstractArray();
-                for (ThingType location : locationArray) {
+                final ThingType[] locationArray = feature.getDigest().getDigest().getThingAbstractArray();
+                for (final ThingType location : locationArray) {
                     locationIds.add(location.getId());
-                    gov.ucore.ucore.x20.LocationType l = (gov.ucore.ucore.x20.LocationType) location;
+                    final gov.ucore.ucore.x20.LocationType l = (gov.ucore.ucore.x20.LocationType) location;
                     XmlUtil.substitute(productDigest.getDigest().addNewThingAbstract(),
-                            InfrastructureNamespaces.NS_UCORE, "Location",
-                            gov.ucore.ucore.x20.LocationType.type, l);
+                        InfrastructureNamespaces.NS_UCORE, "Location",
+                        gov.ucore.ucore.x20.LocationType.type, l);
                 }
             }
-            WorkProductService wps = getWorkProductService();
-            ProductPublicationStatus featureStat = wps.publishProduct(feature);
+            final WorkProductService wps = getWorkProductService();
+            final ProductPublicationStatus featureStat = wps.publishProduct(feature);
             if (featureStat.getStatus().equals(ProductPublicationStatus.SuccessStatus)) {
                 ids.add(status.getProduct().getProductID());
                 results.add(featureStat);
@@ -1105,40 +1092,39 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
             String layerName = StringUtils.join(ids.toArray(new String[ids.size()]), ",");
             layerName = layerName.substring(layerName.indexOf(",") + 1, layerName.length());
 
-            Document doc = DOMUtils.newDocument();
-            Element root = doc.createElementNS(WMC.NAMESPACE, "Layer");
+            final Document doc = DOMUtils.newDocument();
+            final Element root = doc.createElementNS(WMC.NAMESPACE, "Layer");
             root.setAttribute("queryable", "0");
             root.setAttribute("hidden", "0");
             doc.appendChild(root);
 
-            Element server = doc.createElementNS(WMC.NAMESPACE, "Server");
+            final Element server = doc.createElementNS(WMC.NAMESPACE, "Server");
             server.setAttribute("service", "OGC:WMS");
             server.setAttribute("version", "1.1.0");
             server.setAttribute("title", "UICDS Feature WMS");
             root.appendChild(server);
 
-            String url = configurationService.getRestBaseURL() + incidentId + "/features?";
+            final String url = configurationService.getRestBaseURL() + incidentId + "/features?";
 
-            Element or = doc.createElementNS(WMC.NAMESPACE, "OnlineResource");
+            final Element or = doc.createElementNS(WMC.NAMESPACE, "OnlineResource");
             or.setAttributeNS(WMC.XLINK_NAMESPACE, "href", url);
             server.appendChild(or);
 
             DOMUtils.appendElementWithText(root, WMC.NAME, layerName);
             if (incidentId != null) {
-                DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features in Incident '"
-                        + incidentId + "'");
+                DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features in Incident '" +
+                    incidentId + "'");
                 DOMUtils.appendElementWithText(root, WMC.ABSTRACT,
-                        "Shapefile Features for Incident '" + incidentId + "'");
+                    "Shapefile Features for Incident '" + incidentId + "'");
             } else {
                 DOMUtils.appendElementWithText(root, WMC.TITLE, "Shapefile Features");
                 DOMUtils.appendElementWithText(root, WMC.ABSTRACT,
-                        "Shapefile Features for Incident");
+                    "Shapefile Features for Incident");
             }
             DOMUtils.appendElementWithText(root, WMC.SRS, "EPSG:4326");
-            ProductPublicationStatus layerStat = createLayer(incidentId, root);
-            if (layerStat.getStatus().equals(ProductPublicationStatus.SuccessStatus)) {
+            final ProductPublicationStatus layerStat = createLayer(incidentId, root);
+            if (layerStat.getStatus().equals(ProductPublicationStatus.SuccessStatus))
                 results.add(layerStat);
-            }
         }
 
         return results;
@@ -1148,13 +1134,13 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
     @Override
     public void systemInitializedHandler(String messgae) {
 
-        // log.debug("systemInitializedHandler - started");
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(MapType);
         // log.info("systemInitializedHandler - register with DirectoryService");
         getDirectoryService().registerUICDSService(NS_MapService, MAP_SERVICE_NAME, typeList,
-                typeList);
-        log.debug("systemInitializedHandler - started");
+            typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
     /**
@@ -1174,30 +1160,27 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
         layer = fixNamespace(layer);
 
-        String layerId = getWorkProductId(packageId);
+        final String layerId = getWorkProductId(packageId);
 
-        WorkProduct product = getWorkProductService().getProduct(layerId);
+        final WorkProduct product = getWorkProductService().getProduct(layerId);
         if (product != null) {
 
             product.setProduct(coerce(layer));
 
             // Digest Magic
-            if (xsltFilePath == null) {
+            if (xsltFilePath == null)
                 xsltFilePath = "xslt/WPDigest.xsl";
-            }
-            if (iconConfigXmlFilePath == null) {
+            if (iconConfigXmlFilePath == null)
                 iconConfigXmlFilePath = "xml/types_icons.xml";
-            }
             digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-            DigestDocument digest = digestGenerator.createDigest(product);
+            final DigestDocument digest = digestGenerator.createDigest(product);
             product.setDigest(digest);
 
-            ProductPublicationStatus status = workProductService.publishProduct(product);
+            final ProductPublicationStatus status = workProductService.publishProduct(product);
             // log.debug("Updated layer '" + layerId + "' for incident '" + incidentId + "'");
             return status;
-        } else {
+        } else
             throw new NullPointerException("Layer with id '" + layerId + "' is null");
-        }
     }
 
     /**
@@ -1217,30 +1200,27 @@ public class MapServiceImpl implements MapService, ServiceNamespaces {
 
         map = fixNamespace(map);
 
-        String mapId = getWorkProductId(packageIdNode);
+        final String mapId = getWorkProductId(packageIdNode);
 
-        WorkProduct product = getWorkProductService().getProduct(mapId);
+        final WorkProduct product = getWorkProductService().getProduct(mapId);
         if (product != null) {
 
             product.setProduct(coerce(map));
 
             // Digest Magic
-            if (xsltFilePath == null) {
+            if (xsltFilePath == null)
                 xsltFilePath = "xslt/WPDigest.xsl";
-            }
-            if (iconConfigXmlFilePath == null) {
+            if (iconConfigXmlFilePath == null)
                 iconConfigXmlFilePath = "xml/types_icons.xml";
-            }
             digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-            DigestDocument digest = digestGenerator.createDigest(product);
+            final DigestDocument digest = digestGenerator.createDigest(product);
             product.setDigest(digest);
 
-            ProductPublicationStatus status = workProductService.publishProduct(product);
+            final ProductPublicationStatus status = workProductService.publishProduct(product);
             // log.debug("Updated map '" + mapId + "' for incident '" + incidentId + "'");
 
             return status;
-        } else {
+        } else
             throw new NullPointerException("Map with id '" + mapId + "' is null");
-        }
     }
 }

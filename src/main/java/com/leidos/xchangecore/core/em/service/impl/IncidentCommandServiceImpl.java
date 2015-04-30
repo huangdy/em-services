@@ -36,15 +36,13 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  */
 @Transactional
 public class IncidentCommandServiceImpl
-implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
+    implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
 
-    private final Logger log = LoggerFactory.getLogger(IncidentCommandServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(IncidentCommandServiceImpl.class);
 
     private WorkProductService workProductService;
     private DirectoryService directoryService;
-
     private IncidentCommandDAO incidentCommandDAO;
-
     private OrganizationElementDAO organizationElementDAO;
 
     /**
@@ -60,27 +58,23 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
     @Override
     public WorkProduct getCommandStructureByIncident(String incidentID) {
 
-        WorkProduct wp = null;
+        final WorkProduct wp = null;
 
         try {
             // try the type as ICSType
-            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType,
-                null,
+            List<WorkProduct> icsList = workProductService.getProductByTypeAndXQuery(ICSType, null,
                 null);
             // if there is no ICSType, try the MACSType
-            if (icsList.size() == 0) {
+            if (icsList.size() == 0)
                 icsList = workProductService.getProductByTypeAndXQuery(MACSType, null, null);
-            }
 
-            for (WorkProduct ics : icsList) {
-                Set<String> idSet = ics.getAssociatedInterestGroupIDs();
-                for (String id : idSet) {
-                    if (id.equals(incidentID)) {
+            for (final WorkProduct ics : icsList) {
+                final Set<String> idSet = ics.getAssociatedInterestGroupIDs();
+                for (final String id : idSet)
+                    if (id.equals(incidentID))
                         return ics;
-                    }
-                }
             }
-        } catch (InvalidXpathException e) {
+        } catch (final InvalidXpathException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -112,13 +106,11 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
 
         if (org == null || org.getOrganizationElement() == null ||
             org.getOrganizationElement().getPersonInCharge() == null ||
-            org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null) {
+            org.getOrganizationElement().getPersonInCharge().getRoleProfileRef() == null)
             return "UnknownType";
-        }
 
-        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef().startsWith(IncidentCommanderRole)
-            ? ICSType
-            : MACSType;
+        return org.getOrganizationElement().getPersonInCharge().getRoleProfileRef().startsWith(
+            IncidentCommanderRole) ? ICSType : MACSType;
     }
 
     /*
@@ -155,13 +147,13 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
     @Override
     public void systemInitializedHandler(String message) {
 
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(ICSType);
         typeList.addProductType(MACSType);
         getDirectoryService().registerUICDSService(NS_IncidentCommandStructureService,
-            ICS_SERVICE_NAME,
-            typeList,
-            typeList);
+            ICS_SERVICE_NAME, typeList, typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
     /*
@@ -205,20 +197,18 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
     @Override
     public ProductPublicationStatus updateCommandStructure(IdentificationType pkgId,
 
-                                                           // Actually, we don't need to model the Command Structure anymore since we will take it as
-                                                           // product and save it
+    // Actually, we don't need to model the Command Structure anymore since we will take it as
+    // product and save it
 
                                                            OrganizationElementDocument org,
                                                            String incidentID) {
 
-        log.debug("updateCommandStructure");
-        if (incidentID != null) {
+        logger.debug("updateCommandStructure");
+        if (incidentID != null)
             incidentID.replaceAll("\n\t ", "");
-        }
 
-        if (org == null || org.getOrganizationElement() == null) {
+        if (org == null || org.getOrganizationElement() == null)
             return null;
-        }
 
         // Get the current work product if it exists
         WorkProduct wp = workProductService.getProduct(pkgId);
@@ -227,23 +217,20 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
         if (wp == null) {
 
             wp = new WorkProduct();
-            if (pkgId == null) {
+            if (pkgId == null)
                 pkgId = IdentificationType.Factory.newInstance();
-            }
 
-            if (pkgId.getType() == null) {
+            if (pkgId.getType() == null)
                 pkgId.addNewType().setStringValue(getWorkProductTypeByOrg(org));
-            }
 
             WorkProductHelper.setWorkProductIdentification(wp, pkgId);
 
-            if (wp.getProductID() == null) {
+            if (wp.getProductID() == null)
                 // we need to identify whether it is a ICS or MACS
                 wp.setProductID(getWorkProductIDByOrg(org));
-            }
 
             if (incidentID != null) {
-                log.debug(" incidentID=" + incidentID);
+                logger.debug(" incidentID=" + incidentID);
                 wp.associateInterestGroup(incidentID);
             }
         }
@@ -251,7 +238,7 @@ implements IncidentCommandService, ServiceNamespaces, InfrastructureNamespaces {
         // Put the payload into the work product
         wp.setProduct(org);
 
-        ProductPublicationStatus status = workProductService.publishProduct(wp);
+        final ProductPublicationStatus status = workProductService.publishProduct(wp);
 
         return status;
 

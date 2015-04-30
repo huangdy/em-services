@@ -12,8 +12,8 @@ import org.uicds.directoryServiceData.WorkProductTypeListType;
 
 import x0.oasisNamesTcEmergencyEDXLDE1.ContentObjectType;
 import x0.oasisNamesTcEmergencyEDXLDE1.EDXLDistributionDocument;
-import x0.oasisNamesTcEmergencyEDXLDE1.ValueSchemeType;
 import x0.oasisNamesTcEmergencyEDXLDE1.EDXLDistributionDocument.EDXLDistribution;
+import x0.oasisNamesTcEmergencyEDXLDE1.ValueSchemeType;
 
 import com.leidos.xchangecore.core.em.endpoint.BroadcastServiceEndpoint;
 import com.leidos.xchangecore.core.em.exceptions.SendMessageErrorException;
@@ -39,48 +39,36 @@ import com.leidos.xchangecore.core.infrastructure.util.StringUtil;
  * <li>finds the cores that need to receive this message
  * <li>sends this message to the broadcast service on those cores through the communications service
  * </ul>
- * 
+ *
  * This service also receives messages sent from broadcast services hosted on other cores and:
  * <ul>
  * <li>iterates through all the explictAddress elements
  * <li>delivers this message to Notification endpoint of the explictAddresses that are are on this
  * core
  * </ul>
- * 
+ *
  * @version UICDS - alpha
  * @author roberta
  * @author Andre Bonner
  * @ssdd
  */
 public class BroadcastServiceImpl
-    implements BroadcastService, ServiceNamespaces {
-
-    Logger log = LoggerFactory.getLogger(BroadcastServiceEndpoint.class);
-
-    CommunicationsService communicationsService;
-
-    private DirectoryService directoryService;
+implements BroadcastService, ServiceNamespaces {
 
     static final String NEW_LINE = System.getProperty("line.separator");
 
-    public void setDirectoryService(DirectoryService directoryService) {
+    private final Logger logger = LoggerFactory.getLogger(BroadcastServiceEndpoint.class);
 
-        this.directoryService = directoryService;
-    }
-
+    private CommunicationsService communicationsService;
+    private DirectoryService directoryService;
     private NotificationService notificationService;
-
-    public void setNotificationService(NotificationService notificationService) {
-
-        this.notificationService = notificationService;
-    }
 
     /**
      * Parses a broadcast request document for and edxl distribution message and sends the edxl
      * document message to all referenced cores
-     * 
+     *
      * @param message the broadcast request document
-     * 
+     *
      * @exception BroadcastFault
      * @ssdd
      */
@@ -91,23 +79,23 @@ public class BroadcastServiceImpl
 
         // TODO Auto-generated method stub
         // log.debug("sendMessage: "+product.xmlText());
-        log.debug("sendMessage: " + message.xmlText());
+        logger.debug("sendMessage: " + message.xmlText());
         // Must have a distribution element
-        EDXLDistribution edxl = message.getBroadcastMessageRequest().getEDXLDistribution();
-        if (edxl == null) {
+        final EDXLDistribution edxl = message.getBroadcastMessageRequest().getEDXLDistribution();
+        if (edxl == null)
             throw new IllegalArgumentException("Empty EDXLDistribution element");
-        } else {
+        else {
             // Find all the destination cores or JIDs from the explicit address fields
-            HashSet<String> cores = BroadcastUtil.getCoreList(edxl);
-            HashSet<String> jids = BroadcastUtil.getJidList(edxl);
+            final HashSet<String> cores = BroadcastUtil.getCoreList(edxl);
+            final HashSet<String> jids = BroadcastUtil.getJidList(edxl);
 
             // Send the message to each core that has a user in an explictAddress element
-            if (cores.size() == 0 && jids.size() == 0) {
+            if (cores.size() == 0 && jids.size() == 0)
                 throw new EmptyCoreNameListException();
-            } else {
+            else {
                 SendMessageErrorException errorException = new SendMessageErrorException();
 
-                EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.newInstance();
+                final EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.newInstance();
                 edxlDoc.setEDXLDistribution(edxl);
 
                 // Send the message to the cores as a Broadcase Service message
@@ -116,68 +104,65 @@ public class BroadcastServiceImpl
                 // Send the message to any external XMPP addresses
                 errorException = sendXMPPMessage(jids, errorException, edxlDoc);
 
-                if (errorException.getErrors().size() > 0) {
+                if (errorException.getErrors().size() > 0)
                     throw errorException;
-                }
             }
 
         }
 
     }
 
-    private SendMessageErrorException sendMessageToCore(HashSet<String> cores,
-                                                        SendMessageErrorException errorException,
-                                                        String msgStr)
-        throws NoShareAgreementException, NoShareRuleInAgreementException,
-        LocalCoreNotOnlineException {
+    /**
+     * Broadcast message notification handler dispatches received messages to the listeners
+     * specified in the explicit address array
+     *
+     * @param message the message
+     * @ssdd
+     */
+    @Override
+    public void broadcastMessageNotificationHandler(Core2CoreMessage message) {
 
-        for (String core : cores) {
-            try {
-                // log.debug("sendMessage:  Sending " + msgStr + " to: " + core);
-                //		    	System.out.println("sending to " + core);
-                communicationsService.sendMessage(msgStr,
-                    CommunicationsService.CORE2CORE_MESSAGE_TYPE.BROADCAST_MESSAGE,
-                    core);
-                log.debug("called communicationsService.sendMessage");
-            } catch (RemoteCoreUnknownException e1) {
-                errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNKNOWN);
-            } catch (RemoteCoreUnavailableException e2) {
-                errorException.getErrors().put(core,
-                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNAVAILABLE);
-            } catch (LocalCoreNotOnlineException e) {
-                throw e;
-            }
+        logger.debug("broadcastMessageNotificationHandler: received message=[" +
+                     message.getMessage() + "] from " + message.getFromCore());
+
+        XmlObject xmlObj;
+        try {
+
+            final EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.parse(message.getMessage());
+
+            if (edxlDoc.getEDXLDistribution().sizeOfExplicitAddressArray() > 0)
+                // Find core name for each explicit address.
+                for (final ValueSchemeType type : edxlDoc.getEDXLDistribution().getExplicitAddressArray())
+                    if (type.getExplicitAddressScheme().equals(
+                        CommunicationsService.UICDSExplicitAddressScheme))
+                        for (final String address : type.getExplicitAddressValueArray()) {
+                            xmlObj = XmlObject.Factory.parse(edxlDoc.toString());
+                            // log.debug("broadcastMessageNotificationHandler: sending notification ["
+                            // + xmlObj.toString() + "]  to " + address);
+                            sendMessageNotification(xmlObj, address);
+                        }
+
+        } catch (final Throwable e) {
+            logger.error("broadcastMessageNotificationHandler: Error parsing message - not a valid XML string");
+            throw new IllegalArgumentException("Message is not a valid XML string");
         }
-        return errorException;
     }
 
-    private SendMessageErrorException sendXMPPMessage(HashSet<String> jids,
-                                                      SendMessageErrorException errorException,
-                                                      EDXLDistributionDocument edxlDoc)
-        throws NoShareAgreementException, NoShareRuleInAgreementException,
-        LocalCoreNotOnlineException {
+    @Override
+    public CommunicationsService getCommunicationsService() {
 
-        for (String jid : jids) {
-            // log.debug("sendMessage:  Sending " + msgStr + " to: " + core);
-            communicationsService.sendXMPPMessage(getMessageBody(edxlDoc),
-                null,
-                edxlDoc.xmlText(),
-                jid);
-        }
-        return errorException;
+        return communicationsService;
     }
 
     private String getMessageBody(EDXLDistributionDocument edxlDoc) {
 
-        StringBuffer body = new StringBuffer();
+        final StringBuffer body = new StringBuffer();
         if (edxlDoc.getEDXLDistribution() != null) {
             body.append("EDXL-DE message received from ");
-            if (edxlDoc.getEDXLDistribution().getSenderID() != null) {
+            if (edxlDoc.getEDXLDistribution().getSenderID() != null)
                 body.append(edxlDoc.getEDXLDistribution().getSenderID());
-            } else {
+            else
                 body.append("UICDS");
-            }
             body.append(NEW_LINE);
             if (edxlDoc.getEDXLDistribution().getDateTimeSent() != null) {
                 body.append("Sent at ");
@@ -187,61 +172,23 @@ public class BroadcastServiceImpl
             if (edxlDoc.getEDXLDistribution().sizeOfContentObjectArray() > 0) {
                 body.append("Content element descriptions: ");
                 body.append(NEW_LINE);
-                for (ContentObjectType content : edxlDoc.getEDXLDistribution().getContentObjectArray()) {
+                for (final ContentObjectType content : edxlDoc.getEDXLDistribution().getContentObjectArray())
                     if (content.getContentDescription() != null) {
                         body.append("Content Description: ");
                         body.append(content.getContentDescription());
                         body.append(NEW_LINE);
                     }
-                }
             }
         }
         return body.toString();
     }
 
-    /**
-     * Broadcast message notification handler dispatches received messages to the listeners
-     * specified in the explicit address array
-     * 
-     * @param message the message
-     * @ssdd
-     */
-    public void broadcastMessageNotificationHandler(Core2CoreMessage message) {
-
-        log.debug("broadcastMessageNotificationHandler: received message=[" + message.getMessage() +
-                  "] from " + message.getFromCore());
-
-        XmlObject xmlObj;
-        try {
-
-            EDXLDistributionDocument edxlDoc = EDXLDistributionDocument.Factory.parse(message.getMessage());
-
-            if (edxlDoc.getEDXLDistribution().sizeOfExplicitAddressArray() > 0) {
-                // Find core name for each explicit address.
-                for (ValueSchemeType type : edxlDoc.getEDXLDistribution().getExplicitAddressArray()) {
-                    if (type.getExplicitAddressScheme().equals(CommunicationsService.UICDSExplicitAddressScheme)) {
-                        for (String address : type.getExplicitAddressValueArray()) {
-                            xmlObj = XmlObject.Factory.parse(edxlDoc.toString());
-                            // log.debug("broadcastMessageNotificationHandler: sending notification ["
-                            // + xmlObj.toString() + "]  to " + address);
-                            sendMessageNotification(xmlObj, address);
-                        }
-                    }
-                }
-            }
-
-        } catch (Throwable e) {
-            log.error("broadcastMessageNotificationHandler: Error parsing message - not a valid XML string");
-            throw new IllegalArgumentException("Message is not a valid XML string");
-        }
-    }
-
     private void sendMessageNotification(XmlObject xmlObj, String address) {
 
-        ArrayList<NotificationMessageHolderType> messages = new ArrayList<NotificationMessageHolderType>();
+        final ArrayList<NotificationMessageHolderType> messages = new ArrayList<NotificationMessageHolderType>();
 
-        NotificationMessageHolderType t = NotificationMessageHolderType.Factory.newInstance();
-        NotificationMessageHolderType.Message m = t.addNewMessage();
+        final NotificationMessageHolderType t = NotificationMessageHolderType.Factory.newInstance();
+        final NotificationMessageHolderType.Message m = t.addNewMessage();
 
         try {
             m.set(xmlObj);
@@ -250,36 +197,79 @@ public class BroadcastServiceImpl
             NotificationMessageHolderType[] notification = new NotificationMessageHolderType[messages.size()];
 
             notification = messages.toArray(notification);
-            log.debug("===> sending Core2Core message: array size=" + notification.length);
+            logger.debug("===> sending Core2Core message: array size=" + notification.length);
             notificationService.notify(StringUtil.getSubmitterResourceInstanceName(address),
                 notification);
-        } catch (Throwable e) {
-            log.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to " +
-                      address);
+        } catch (final Throwable e) {
+            logger.error("productPublicationStatusNotificationHandler: error creating and sending  Core2Core message  notification to " +
+                         address);
             e.printStackTrace();
         }
     }
 
-    @Override
-    public CommunicationsService getCommunicationsService() {
+    private SendMessageErrorException sendMessageToCore(HashSet<String> cores,
+                                                        SendMessageErrorException errorException,
+                                                        String msgStr)
+                                                            throws NoShareAgreementException, NoShareRuleInAgreementException,
+                                                            LocalCoreNotOnlineException {
 
-        return this.communicationsService;
+        for (final String core : cores)
+            try {
+                // log.debug("sendMessage:  Sending " + msgStr + " to: " + core);
+                //		    	System.out.println("sending to " + core);
+                communicationsService.sendMessage(msgStr,
+                    CommunicationsService.CORE2CORE_MESSAGE_TYPE.BROADCAST_MESSAGE, core);
+                logger.debug("called communicationsService.sendMessage");
+            } catch (final RemoteCoreUnknownException e1) {
+                errorException.getErrors().put(core,
+                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNKNOWN);
+            } catch (final RemoteCoreUnavailableException e2) {
+                errorException.getErrors().put(core,
+                    SendMessageErrorException.SEND_MESSAGE_ERROR_TYPE.CORE_UNAVAILABLE);
+            } catch (final LocalCoreNotOnlineException e) {
+                throw e;
+            }
+        return errorException;
+    }
+
+    private SendMessageErrorException sendXMPPMessage(HashSet<String> jids,
+                                                      SendMessageErrorException errorException,
+                                                      EDXLDistributionDocument edxlDoc)
+                                                          throws NoShareAgreementException, NoShareRuleInAgreementException,
+                                                          LocalCoreNotOnlineException {
+
+        for (final String jid : jids)
+            // log.debug("sendMessage:  Sending " + msgStr + " to: " + core);
+            communicationsService.sendXMPPMessage(getMessageBody(edxlDoc), null, edxlDoc.xmlText(),
+                jid);
+        return errorException;
     }
 
     @Override
     public void setCommunicationsService(CommunicationsService service) {
 
-        this.communicationsService = service;
+        communicationsService = service;
+    }
+
+    public void setDirectoryService(DirectoryService directoryService) {
+
+        this.directoryService = directoryService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+
+        this.notificationService = notificationService;
     }
 
     /** {@inheritDoc} */
+    @Override
     public void systemInitializedHandler(String message) {
 
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
-        directoryService.registerUICDSService(NS_BroadcastService,
-            BROADCAST_SERVICE_NAME,
-            typeList,
-            typeList);
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        directoryService.registerUICDSService(NS_BroadcastService, BROADCAST_SERVICE_NAME,
+            typeList, typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
 }

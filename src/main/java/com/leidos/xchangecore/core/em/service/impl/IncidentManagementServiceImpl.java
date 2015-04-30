@@ -87,7 +87,7 @@ import com.vividsolutions.jts.geom.Point;
  * @ssdd
  */
 public class IncidentManagementServiceImpl
-implements IncidentManagementService, PubSubNotificationService, ServiceNamespaces {
+    implements IncidentManagementService, PubSubNotificationService, ServiceNamespaces {
 
     Logger logger = LoggerFactory.getLogger(IncidentManagementServiceImpl.class);
 
@@ -132,11 +132,10 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         // set activity name
         String incidentName = "No incident description.";
-        if (alert.sizeOfInfoArray() > 0) {
+        if (alert.sizeOfInfoArray() > 0)
             incidentName = alert.getInfoArray()[0].getEvent();
-        } else {
+        else
             incidentName = alert.getIdentifier();
-        }
 
         final TextType[] activityNameArray = new TextType[1];
         activityNameArray[0] = TextType.Factory.newInstance();
@@ -167,32 +166,29 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                     String[] stringValues = area.getPolygonArray();
                     // if there are polygon points then save them into
                     // IncidentLocation.LocationArea.AreaPolygonGeographicCoordinate
-                    if (stringValues != null) {
+                    if (stringValues != null)
                         for (final String polygonString : stringValues) {
                             // assign the polygon into
                             // IncidentType.IncidentLocation.LocationArea.Polygon
                             final AreaType polygonArea = EMGeoUtil.getPoloygon(polygonString);
                             incidentLocation.addNewLocationArea().set(polygonArea);
                         }
-                    }
                     // if there are circle then save them into
                     // IncidentLocation.LocationArea.AreaCircleRegion
                     stringValues = area.getCircleArray();
-                    if ((stringValues != null) && (stringValues.length > 0)) {
+                    if (stringValues != null && stringValues.length > 0)
                         for (final String circleString : stringValues) {
                             // each point is a circle with center coordinate and radius
                             final CircularRegionType theCircle = EMGeoUtil.getCircle(circleString);
-                            if ((theCircle != null) &&
-                                (theCircle.getCircularRegionCenterCoordinateArray().length > 0)) {
-                                incidentLocation.addNewLocationArea().addNewAreaCircularRegion().set(theCircle);
-                            }
+                            if (theCircle != null &&
+                                theCircle.getCircularRegionCenterCoordinateArray().length > 0)
+                                incidentLocation.addNewLocationArea().addNewAreaCircularRegion().set(
+                                    theCircle);
                         }
-                    }
                 }
             }
-        } else {
+        } else
             activityCategoryText[0].setStringValue(Alert.Info.Category.OTHER.toString());
-        }
 
         theIncident.setActivityCategoryTextArray(activityCategoryText);
 
@@ -203,9 +199,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         if (theIncident.sizeOfIncidentLocationArray() == 0) {
             incidentLocationArray = new LocationType[1];
             incidentLocationArray[0] = LocationType.Factory.newInstance();
-        } else {
+        } else
             incidentLocationArray = theIncident.getIncidentLocationArray();
-        }
         final AddressFullTextDocument ad = AddressFullTextDocument.Factory.newInstance();
         ad.addNewAddressFullText().setStringValue(alert.getAddresses());
         incidentLocationArray[0].addNewLocationAddress().set(ad);
@@ -243,37 +238,36 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     public ProductPublicationStatus archiveIncident(String incidentID) {
 
         ProductPublicationStatus status = validateIncident(incidentID);
-        if (status != null) {
+        if (status != null)
             return status;
-        }
 
         status = new ProductPublicationStatus();
         status.setStatus(ProductPublicationStatus.SuccessStatus);
 
         // find the work products, mark them to be deleted
-        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(incidentID);
+        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(
+            incidentID);
         for (final WorkProduct product : products) {
-            if (product.isActive() == true) {
+            if (product.isActive() == true)
                 return new ProductPublicationStatus(incidentID + " contains " +
-                    product.getProductID() +
-                    " which needs to be closed first");
-            }
+                                                    product.getProductID() +
+                                                    " which needs to be closed first");
             logger.debug("delete " + product.getProductID() + ", Ver.: " +
-                product.getProductVersion());
+                         product.getProductVersion());
             getWorkProductService().deleteWorkProduct(product.getProductID());
         }
 
         // we will delete the interest group now.
         try {
             logger.debug("ask InterestGroupManagementComponent to delete InterestGroup: " +
-                incidentID);
+                         incidentID);
             getInterestGroupManagementComponent().deleteInterestGroup(incidentID);
             // TODO the UserInterestGroupDAO and IncidentDAO shall be linked
             getUserInterestGroupDAO().removeInterestGroup(incidentID);
         } catch (final InvalidInterestGroupIDException e) {
             e.printStackTrace();
             return new ProductPublicationStatus("delete interest group: " + incidentID + ": " +
-                e.getMessage());
+                                                e.getMessage());
         }
 
         // find the incident model and mark it to be deleted
@@ -285,12 +279,12 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             status.setStatus(ProductPublicationStatus.FailureStatus);
             status.setReasonForFailure(e.getMessage());
             logger.error("archiveIncident: HibernateException deleting incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         } catch (final Exception e) {
             status.setStatus(ProductPublicationStatus.FailureStatus);
             status.setReasonForFailure(e.getMessage());
             logger.error("archiveIncident: Exception deleting incidentDAO: " + e.getMessage() +
-                         " from " + e.toString());
+                " from " + e.toString());
         }
 
         // make a performance log entry
@@ -317,22 +311,22 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     public ProductPublicationStatus closeIncident(String incidentID) {
 
         ProductPublicationStatus status = validateIncident(incidentID);
-        if (status != null) {
+        if (status != null)
             return status;
-        }
 
         status = new ProductPublicationStatus();
         status.setStatus(ProductPublicationStatus.SuccessStatus);
 
         // find the work products, mark them to be deleted
-        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(incidentID);
-        for (final WorkProduct product : products) {
-            if ((product != null) && product.isActive()) {
+        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(
+            incidentID);
+        for (final WorkProduct product : products)
+            if (product != null && product.isActive()) {
                 logger.debug("mark " + product.getProductID() + ", Ver.: " +
-                    product.getProductVersion() + " as Deleted/InActive");
-                getWorkProductService().closeProduct(WorkProductHelper.getWorkProductIdentification(product));
+                             product.getProductVersion() + " as Deleted/InActive");
+                getWorkProductService().closeProduct(
+                    WorkProductHelper.getWorkProductIdentification(product));
             }
-        }
 
         // find the incident model and mark it to be deleted
         logger.debug("mark " + incidentID + " as Deleted/InActive");
@@ -342,12 +336,12 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             status.setStatus(ProductPublicationStatus.FailureStatus);
             status.setReasonForFailure(e.getMessage());
             logger.error("closeIncident: HibernateException deleting incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         } catch (final Exception e) {
             status.setStatus(ProductPublicationStatus.FailureStatus);
             status.setReasonForFailure(e.getMessage());
             logger.error("closeIncident: Exception deleting incidentDAO: " + e.getMessage() +
-                         " from " + e.toString());
+                " from " + e.toString());
         }
 
         // make a performance log entry
@@ -421,12 +415,10 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         // Create the digest if we have an XSLT .
         // test env doesn't set this via Spring:
-        if (xsltFilePath == null) {
+        if (xsltFilePath == null)
             xsltFilePath = "xslt/IncidentDigest.xsl";
-        }
-        if (iconConfigXmlFilePath == null) {
+        if (iconConfigXmlFilePath == null)
             iconConfigXmlFilePath = "xml/types_icons.xml";
-        }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
         final DigestDocument digestDoc = digestGenerator.createDigest(incidentDoc);
         // log.info("digestDoc="+digestDoc);
@@ -451,8 +443,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
             // send the IncidentStateNotificationMessage.State.NEW message
             sendIncidentStateChangeMessages(InterestGroupStateNotificationMessage.State.NEW,
-                                            getIncidentDAO().findByIncidentID(getIncidentID(incidentDoc.getIncident())),
-                                            igInfo);
+                getIncidentDAO().findByIncidentID(getIncidentID(incidentDoc.getIncident())), igInfo);
         }
 
         // make a performance log entry
@@ -462,11 +453,10 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         logEntry.setCoreName(owningCore);
         logEntry.setIncidentId(interestGroupID);
         logEntry.setCreatedBy(ServletUtil.getPrincipalName());
-        if (incident.sizeOfActivityCategoryTextArray() > 0) {
+        if (incident.sizeOfActivityCategoryTextArray() > 0)
             logEntry.setIncidentType(incident.getActivityCategoryTextArray(0).getStringValue());
-        } else {
+        else
             logEntry.setIncidentType(wp.getProductType());
-        }
         logger.info(logEntry.getLogEntry());
 
         return status;
@@ -484,9 +474,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     @Override
     public ProductPublicationStatus createIncidentFromCap(Alert alert) {
 
-        if (alert == null) {
+        if (alert == null)
             return null;
-        }
 
         return createIncident(alertToIncident(alert));
     }
@@ -513,10 +502,11 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         final String incidentID = message.getInterestGroupID();
 
         // find the work products, mark them to be deleted
-        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(incidentID);
+        final WorkProduct[] products = getWorkProductService().getAssociatedWorkProductList(
+            incidentID);
         for (final WorkProduct product : products) {
             logger.debug("deleteJoinedInterestGroupHandler: purge product: " +
-                product.getProductID());
+                         product.getProductID());
             getWorkProductService().purgeWorkProduct(product.getProductID());
         }
 
@@ -526,10 +516,10 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             incidentDAO.delete(incidentID, true);
         } catch (final HibernateException e) {
             logger.error("deleteJoinedInterestGroupHandler: HibernateException deleting incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         } catch (final Exception e) {
             logger.error("deleteJoinedInterestGroupHandler: Exception deleting incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         }
     }
 
@@ -546,10 +536,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         logger.debug("doShareIncident: incidentDoc's string=[" + incidentInfoDoc.toString() + "]");
         try {
-            interestGroupManagementComponent.shareInterestGroup(IGID,
-                                                                remoteCoreJID,
-                                                                incidentInfoDoc.toString(),
-                                                                agreementChecked);
+            interestGroupManagementComponent.shareInterestGroup(IGID, remoteCoreJID,
+                incidentInfoDoc.toString(), agreementChecked);
 
             // TODO: RDW - The shareInterestGroup call sends an asycn message to the joining core
             // We can't wait synchronously for this response so we should put the request in a
@@ -579,16 +567,15 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         // Add uicds-admins memebers to whitelist regardless
         logger.debug("gernerateUserInterestGroupList: uicds-admin group is added");
         final List<String> adminMembers = getLdapUtil().getGroupMembersForAdmins();
-        for (final String adminMember : adminMembers) {
+        for (final String adminMember : adminMembers)
             getUserInterestGroupDAO().addUser(adminMember, IGID);
-        }
 
         final List<Agreement> agreementList = getAgreementDAO().findAll();
         for (final Agreement agreement : agreementList) {
             if (!agreement.isIntraCoreAgreement()) {
                 logger.debug("generateUserInterestGroupList: inter-core: localCoreJID: " +
-                    agreement.getLocalCorename() + " with remoteCoreJID: " +
-                    agreement.getRemoteCorename() + " ... skip ...");
+                             agreement.getLocalCorename() + " with remoteCoreJID: " +
+                             agreement.getRemoteCorename() + " ... skip ...");
 
                 continue;
             }
@@ -607,17 +594,15 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                 doShare = true;
             }
             if (!doShare && !agreement.getLocalJIDs().isEmpty() &&
-                agreement.getLocalJIDs().contains(creator)) {
+                agreement.getLocalJIDs().contains(creator))
                 doShare = true;
-            }
             if (!doShare && !agreement.getLocalGroups().isEmpty()) {
                 final Set<String> groups = agreement.getLocalGroups();
-                for (final String group : groups) {
+                for (final String group : groups)
                     if (getLdapUtil().groupContainsMember(group, creator)) {
                         doShare = true;
                         break;
                     }
-                }
             }
             /*
              * if (!doShare && !agreement.getRemoteJIDs().isEmpty() &&
@@ -629,19 +614,17 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             // }
             if (doShare) {
                 logger.debug("generateUserInterestGroupList: the creator: " + creator +
-                    " is one of the local group/user");
+                             " is one of the local group/user");
 
                 if (agreement.getRemoteJIDs().isEmpty() && agreement.getRemoteGroups().isEmpty()) {
                     logger.debug("generateUserInterestGroupList: to part is all");
                     final List<String> members = getLdapUtil().getGroupMembersForUsers();
-                    for (final String member : members) {
+                    for (final String member : members)
                         getUserInterestGroupDAO().addUser(member, IGID);
-                    }
                 }
                 final Set<String> users = agreement.getRemoteJIDs();
-                for (final String user : users) {
+                for (final String user : users)
                     getUserInterestGroupDAO().addUser(user, IGID);
-                }
                 final Set<String> groups = agreement.getRemoteGroups();
                 for (final String group : groups) {
                     // check all the rules
@@ -650,9 +633,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                     logger.debug("Checking Agreement Matcher for group: " + group);
                     if (AgreementMatcher.isMatch(points, agreement.getShareRules(), incidentDoc)) {
                         final List<String> members = getLdapUtil().getGroupMembers(group);
-                        for (final String member : members) {
+                        for (final String member : members)
                             getUserInterestGroupDAO().addUser(member, IGID);
-                        }
                     }
                 }
             }
@@ -703,9 +685,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     private String getIncidentActivityCategory(UICDSIncidentType incident) {
 
         String incidentActivityCategory = null;
-        if (incident.sizeOfActivityCategoryTextArray() > 0) {
+        if (incident.sizeOfActivityCategoryTextArray() > 0)
             incidentActivityCategory = incident.getActivityCategoryTextArray(0).getStringValue();
-        }
         return incidentActivityCategory;
     }
 
@@ -718,29 +699,25 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     private String getIncidentDateRepresentation(UICDSIncidentType incident) {
 
         String dateRepresentation = null;
-        if (incident.sizeOfActivityDateRepresentationArray() > 0) {
+        if (incident.sizeOfActivityDateRepresentationArray() > 0)
             dateRepresentation = incident.getActivityDateRepresentationArray(0).toString();
-        }
         return dateRepresentation;
     }
 
     private String getIncidentDescription(UICDSIncidentType incident) {
 
         String incidentDescription = null;
-        if (incident.sizeOfActivityDescriptionTextArray() > 0) {
+        if (incident.sizeOfActivityDescriptionTextArray() > 0)
             incidentDescription = incident.getActivityDescriptionTextArray(0).getStringValue();
-        }
         return incidentDescription;
     }
 
     private String getIncidentID(UICDSIncidentType incident) {
 
         String incidentID = null;
-        if (incident.sizeOfActivityIdentificationArray() > 0) {
-            if (incident.getActivityIdentificationArray(0).sizeOfIdentificationIDArray() > 0) {
+        if (incident.sizeOfActivityIdentificationArray() > 0)
+            if (incident.getActivityIdentificationArray(0).sizeOfIdentificationIDArray() > 0)
                 incidentID = incident.getActivityIdentificationArray(0).getIdentificationIDArray(0).getStringValue();
-            }
-        }
         return incidentID;
     }
 
@@ -757,9 +734,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         final InterestGroupInfo igInfo = interestGroupManagementComponent.getInterestGroup(incidentID);
         final Incident incident = incidentDAO.findByIncidentID(incidentID);
-        if (incident != null) {
+        if (incident != null)
             return toIncidentInfoType(incident, igInfo);
-        }
         return null;
     }
 
@@ -775,14 +751,12 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         final ArrayList<WorkProduct> workProducts = new ArrayList<WorkProduct>();
 
         final List<Incident> incidents = incidentDAO.findAll();
-        if ((incidents != null) && (incidents.size() > 0)) {
+        if (incidents != null && incidents.size() > 0)
             for (final Incident incident : incidents) {
                 final WorkProduct wp = workProductService.getProduct(incident.getWorkProductID());
-                if (wp != null) {
+                if (wp != null)
                     workProducts.add(wp);
-                }
             }
-        }
 
         return workProducts;
     }
@@ -790,9 +764,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     private String getIncidentName(UICDSIncidentType incident) {
 
         String incidentName = null;
-        if (incident.sizeOfActivityNameArray() > 0) {
+        if (incident.sizeOfActivityNameArray() > 0)
             incidentName = incident.getActivityNameArray(0).getStringValue();
-        }
         return incidentName;
     }
 
@@ -830,9 +803,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         if (closedIncidents.size() > 0) {
             incidentIDList = new String[closedIncidents.size()];
             int i = 0;
-            for (final Incident incident : closedIncidents) {
+            for (final Incident incident : closedIncidents)
                 incidentIDList[i++] = incident.getIncidentId();
-            }
         }
 
         return incidentIDList;
@@ -849,15 +821,14 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         final IncidentListType response = IncidentListType.Factory.newInstance();
         final List<Incident> incidents = incidentDAO.findAll();
-        if ((incidents != null) && (incidents.size() > 0)) {
+        if (incidents != null && incidents.size() > 0) {
             final List<IncidentInfoType> infoList = new ArrayList<IncidentInfoType>();
             for (final Incident incident : incidents) {
                 final InterestGroupInfo igInfo = interestGroupManagementComponent.getInterestGroup(incident.getIncidentId());
                 if (igInfo != null) {
                     final IncidentInfoType incidentInfo = toIncidentInfoType(incident, igInfo);
-                    if (incidentInfo != null) {
+                    if (incidentInfo != null)
                         infoList.add(incidentInfo);
-                    }
                 }
             }
             if (infoList.size() > 0) {
@@ -916,7 +887,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             notifyOfIncidentStateChange(mesg);
         } catch (final Exception e) {
             logger.error("Share Incident: " + incidentID + " with " + coreName +
-                         " incident state listener failure: " + e.getMessage());
+                " incident state listener failure: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -930,7 +901,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             e.printStackTrace();
             logger.error("Incident WP: " + wp.getProductID() + " not a valied incident document");
             throw new UICDSException("Internal Error: Incident WP: " + wp.getProductID() +
-                " not a valied incident document");
+                                     " not a valied incident document");
 
         }
 
@@ -964,19 +935,17 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     private void init() {
 
         final List<Incident> incidents = incidentDAO.findAll();
-        if (incidents != null) {
+        if (incidents != null)
             for (final Incident incident : incidents) {
-                final InterestGroupInfo igInfo = getInterestGroupManagementComponent().getInterestGroup(incident.getIncidentId());
-                if (igInfo.getOwningCore().equalsIgnoreCase(getDirectoryService().getLocalCoreJid())) {
-                    sendIncidentStateChangeMessages(InterestGroupStateNotificationMessage.State.RESTORE,
-                                                    incident,
-                                                    igInfo);
-                } else {
+                final InterestGroupInfo igInfo = getInterestGroupManagementComponent().getInterestGroup(
+                    incident.getIncidentId());
+                if (igInfo.getOwningCore().equalsIgnoreCase(getDirectoryService().getLocalCoreJid()))
+                    sendIncidentStateChangeMessages(
+                        InterestGroupStateNotificationMessage.State.RESTORE, incident, igInfo);
+                else
                     logger.debug("init: IGID: " + igInfo.getInterestGroupID() + " owningCoreJID: " +
-                        igInfo.getOwningCore() + " restore after remote core is online");
-                }
+                                 igInfo.getOwningCore() + " restore after remote core is online");
             }
-        }
     }
 
     /**
@@ -997,16 +966,16 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     public void newJoinedInterestGroupHandler(JoinedInterestGroupNotificationMessage message) {
 
         logger.info("newJoinedInterestGroupHandler: receive new joined incident notification incidentID=" +
-            message.interestGroupID +
-            " incidentType=" +
-            message.interestGroupType +
-            " owner=" + message.owner);
+                    message.interestGroupID +
+                    " incidentType=" +
+                    message.interestGroupType +
+                    " owner=" + message.owner);
 
         if (message.interestGroupType.equals(IncidentManagementService.InterestGroupType)) {
 
             Incident incident = getIncidentDAO().findByIncidentID(message.interestGroupID);
 
-            if (incident == null) {
+            if (incident == null)
                 try {
                     final IncidentInfoDocument incidentInfoDocument = IncidentInfoDocument.Factory.parse(message.interestGroupInfo);
 
@@ -1021,17 +990,16 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                         getIncidentDAO().makePersistent(incident);
                     } catch (final HibernateException e) {
                         logger.error("newJoinedInterestGroupHandler: HibernateException makePersistent incidentDAO: " +
-                            e.getMessage() + " from " + e.toString());
+                                     e.getMessage() + " from " + e.toString());
                     } catch (final Exception e) {
                         logger.error("newJoinedInterestGroupHandler: Exception makePersistent incidentDAO: " +
-                            e.getMessage() + " from " + e.toString());
+                                     e.getMessage() + " from " + e.toString());
                     }
 
                     final InterestGroupInfo igInfo = interestGroupManagementComponent.getInterestGroup(incident.getIncidentId());
                     if (igInfo != null) {
-                        sendIncidentStateChangeMessages(InterestGroupStateNotificationMessage.State.JOIN,
-                                                        incident,
-                                                        igInfo);
+                        sendIncidentStateChangeMessages(
+                            InterestGroupStateNotificationMessage.State.JOIN, incident, igInfo);
 
                         // make a performance log entry
                         final LogEntry logEntry = new LogEntry();
@@ -1042,16 +1010,14 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                         logEntry.setJoinCoreName(message.getOwner());
                         logger.info(logEntry.getLogEntry());
 
-                    } else {
+                    } else
                         logger.error("newJoinedInterestGroupHandler: Failed to retrieve interest group info for  " +
-                            incident.getIncidentId() +
-                            "from interestGroupManagementComponent");
-                    }
+                                     incident.getIncidentId() +
+                                     "from interestGroupManagementComponent");
                 } catch (final Throwable e) {
                     logger.error("newJoinedInterestGroupHandler: error parsing received incident info");
                     e.printStackTrace();
                 }
-            }
         }
     }
 
@@ -1059,16 +1025,14 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         final WorkProduct wp = new WorkProduct();
         final String incidentID = getIncidentID(incidentDoc.getIncident());
-        if (incidentID == null) {
+        if (incidentID == null)
             logger.error("Missing incident ID from [" + incidentDoc.toString() + "]");
-        }
         wp.associateInterestGroup(incidentID);
         wp.setProductType(Type);
 
-        if (productID == null) {
+        if (productID == null)
             productID = UUIDUtil.getID(IncidentManagementService.Type);
-            // addWPIDToIncident(incidentDoc.getIncident(), productID);
-        }
+        // addWPIDToIncident(incidentDoc.getIncident(), productID);
 
         incidentDoc.getIncident().setId(productID);
         wp.setProductID(productID);
@@ -1096,7 +1060,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         // Verify the subscription was made for a pending update
         logger.debug("newWorkProductVersion: incident wpID=" + workProductID + " subscriptionId=" +
-            subscriptionId);
+                     subscriptionId);
 
         // When the Incident document has updated on the remote core successfully, we need to
         // update the Incident & InterestGroup model
@@ -1107,7 +1071,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
                 theIncident = (IncidentDocument) product.getProduct();
             } catch (final Exception e) {
                 logger.error("the work product is not a valid Incident Document\n" +
-                    e.getMessage() + "\n" + product.getProduct().xmlText());
+                             e.getMessage() + "\n" + product.getProduct().xmlText());
                 return;
             }
             // if owning core is not itself and there is no interest group created
@@ -1115,20 +1079,18 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             final String owningCore = theIncident.getIncident().getOwningCore();
             final String interestGroupId = getIncidentID(theIncident.getIncident());
             if (interestGroupDAO.findByInterestGroup(interestGroupId) == null) {
-                if (owningCore.equals(directoryService.getCoreName())) {
+                if (owningCore.equals(directoryService.getCoreName()))
                     logger.error(directoryService.getCoreName() +
-                        " is the owner, but no Interest Group exists");
-                } else {
+                                 " is the owner, but no Interest Group exists");
+                else
                     logger.debug("this is the first Incident Document update on the joined core");
-                }
                 return;
             } else if (!owningCore.equals(directoryService.getCoreName())) {
                 logger.debug("newWorkProductVersion: Update: Incident:" + product.getProductID() +
-                             ", Version: " + product.getProductVersion() + ", owned by core: " +
-                             owningCore);
-                updateIncidentModelAndInterestGroupInfo(theIncident.getIncident(),
-                                                        owningCore,
-                                                        product.getProductID());
+                    ", Version: " + product.getProductVersion() + ", owned by core: " +
+                    owningCore);
+                updateIncidentModelAndInterestGroupInfo(theIncident.getIncident(), owningCore,
+                    product.getProductID());
             }
         }
     }
@@ -1143,8 +1105,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     public void notifyOfIncidentStateChange(IncidentStateNotificationMessage notification) {
 
         logger.info("#### notifyOfIncidentStateChange() called with incident:" +
-            notification.getIncidentInfo().getId() + " state:" + notification.getState() +
-            " thead:" + Thread.currentThread().getName());
+                    notification.getIncidentInfo().getId() + " state:" + notification.getState() +
+                    " thead:" + Thread.currentThread().getName());
         final Message<IncidentStateNotificationMessage> message = new GenericMessage<IncidentStateNotificationMessage>(notification);
         incidentStateNotificationChannel.send(message);
 
@@ -1190,18 +1152,16 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         // After published the work product, we will do another persist and the work product Id will
         // be needed to persisted.
         final String incidentWPId = getIncidentWPID(incident);
-        if (incidentWPId != null) {
+        if (incidentWPId != null)
             i.setWorkProductID(incidentWPId);
-        }
 
         // Point point = EMGeoUtil.parsePoint(incident);
         final Point point = IncidentUtil.getIncidentLocation(incident);
         if (point != null) {
             i.setLatitude(point.getY());
             i.setLongitude(point.getX());
-        } else {
+        } else
             logger.debug("persistIncident: Location not found in incident");
-        }
 
         // TODO: what is the DateRepresentation ?
         // setDate(getIncidentDateRepresentation(incident));
@@ -1212,10 +1172,10 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             r = null;
         } catch (final HibernateException e) {
             logger.error("persistIncident: HibernateException makePersistent incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         } catch (final Exception e) {
             logger.error("persistIncident: Exception makePersistent incidentDAO: " +
-                e.getMessage() + " from " + e.toString());
+                         e.getMessage() + " from " + e.toString());
         }
     }
 
@@ -1247,21 +1207,21 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         mesg.setIncidentInfo(incidentInfo);
 
         logger.debug("sendIncidentStateChangeMessage: \nmessage= IncidentStateNotificationMessage \nstate= " +
-            mesg.getState() +
-            "\nwpID=" +
-            mesg.getIncidentInfo().getWorkProductIdentification().getIdentifier().getStringValue() +
-            "\nID=" +
-            mesg.getIncidentInfo().getId() +
-            "\ndesc:" +
-            mesg.getIncidentInfo().getDescription() +
-            "\nlat=" +
-            mesg.getIncidentInfo().getLatitude() +
-            "\nlong=" +
-            mesg.getIncidentInfo().getLongitude() +
-            "\nname:" +
-            mesg.getIncidentInfo().getName() +
-            " \nowningCore=" +
-            mesg.getIncidentInfo().getOwningCore());
+                     mesg.getState() +
+                     "\nwpID=" +
+                     mesg.getIncidentInfo().getWorkProductIdentification().getIdentifier().getStringValue() +
+                     "\nID=" +
+                     mesg.getIncidentInfo().getId() +
+                     "\ndesc:" +
+                     mesg.getIncidentInfo().getDescription() +
+                     "\nlat=" +
+                     mesg.getIncidentInfo().getLatitude() +
+                     "\nlong=" +
+                     mesg.getIncidentInfo().getLongitude() +
+                     "\nname:" +
+                     mesg.getIncidentInfo().getName() +
+                     " \nowningCore=" +
+                     mesg.getIncidentInfo().getOwningCore());
         notifyOfIncidentStateChange(mesg);
 
     }
@@ -1301,13 +1261,12 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     // make the ActivityIdentification to be immutable
     private void setIncidentID(UICDSIncidentType incident, String incidentID) {
 
-        if (incident.sizeOfActivityIdentificationArray() > 0) {
+        if (incident.sizeOfActivityIdentificationArray() > 0)
             incident.removeActivityIdentification(0);
-        }
 
-        if ((incidentID != null) && (incidentID.length() > 0)) {
-            incident.addNewActivityIdentification().addNewIdentificationID().setStringValue(incidentID);
-        }
+        if (incidentID != null && incidentID.length() > 0)
+            incident.addNewActivityIdentification().addNewIdentificationID().setStringValue(
+                incidentID);
     }
 
     /**
@@ -1399,27 +1358,23 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
     @Override
     public void systemInitializedHandler(String message) {
 
+        logger.debug("systemInitializedHandler: ... start ...");
         // register with the directory service
         final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(Type);
-        getDirectoryService().registerUICDSService(NS_IncidentManagementService,
-                                                   IMS_SERVICE_NAME,
-                                                   typeList,
-                                                   typeList);
+        getDirectoryService().registerUICDSService(NS_IncidentManagementService, IMS_SERVICE_NAME,
+            typeList, typeList);
 
         // remove any existing subscriptions for this service (trac#602)
         final List<Integer> subscriptionIDs = pubSubService.getSubscriptionsByServiceName(getServiceName());
-        for (final Integer subscriptionID : subscriptionIDs) {
+        for (final Integer subscriptionID : subscriptionIDs)
             pubSubService.unsubscribeBySubscriptionID(subscriptionID);
-        }
 
         // resubscribe to Incident work product updates
         try {
             // pubSubService.
-            pubSubService.subscribeWorkProductType(IncidentManagementService.Type,
-                                                   null,
-                                                   new HashMap<String, String>(),
-                                                   this);
+            pubSubService.subscribeWorkProductType(IncidentManagementService.Type, null,
+                new HashMap<String, String>(), this);
         } catch (final Exception e) {
             logger.error("Unable to subscribe to own product type");
             e.printStackTrace();
@@ -1428,7 +1383,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         // log.info("calling DigestGenerator(xsltFilePath)");
         // digestGenerator = new DigestGenerator(xsltFilePath);
-
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
     private IncidentInfoType toIncidentInfoType(Incident incident, InterestGroupInfo igInfo) {
@@ -1442,7 +1397,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
         if (identification == null) {
             logger.error("toIncidentInfoType - unable to retrieve product identification for incident:" +
-                incident.getIncidentId() + ", wp: " + incident.getWorkProductID());
+                         incident.getIncidentId() + ", wp: " + incident.getWorkProductID());
             return null;
         }
 
@@ -1476,30 +1431,27 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
         final String productID = pkgId.getIdentifier().getStringValue();
 
         final WorkProduct wp = getWorkProductService().getProduct(productID);
-        if (incident.sizeOfActivityCategoryTextArray() > 0) {
+        if (incident.sizeOfActivityCategoryTextArray() > 0)
             logger.debug("updateIncident: wpID=" + productID + "category:" +
-                incident.getActivityCategoryTextArray(0).toString());
-        }
+                         incident.getActivityCategoryTextArray(0).toString());
 
         if (incident.sizeOfIncidentLocationArray() > 0) {
             final Point point = IncidentUtil.getIncidentLocation(incident);
-            if (point != null) {
+            if (point != null)
                 logger.debug("===> updateIncidet: lat=" + IncidentUtil.getLatitude(point) +
-                             " long=" + IncidentUtil.getLongititude(point));
-            } else {
+                    " long=" + IncidentUtil.getLongititude(point));
+            else
                 logger.debug("===> updateIncidet: - location not specified in the update");
-            }
         }
 
         if (wp == null) {
             logger.error("updateIncident: unable to locate incident wp for productID=" + productID);
             final ProductPublicationStatus status = new ProductPublicationStatus();
             status.setStatus(ProductPublicationStatus.FailureStatus);
-            if (workProductService.isDeleted(productID) == true) {
+            if (workProductService.isDeleted(productID) == true)
                 status.setReasonForFailure(productID + " is inactive");
-            } else {
+            else
                 status.setReasonForFailure(productID + " cannot be located");
-            }
             return status;
         } else {
             IncidentDocument persistedIncidentDoc = null;
@@ -1539,17 +1491,15 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
 
             if (status.getStatus().equals(ProductPublicationStatus.SuccessStatus)) {
                 final InterestGroupInfo igInfo = updateIncidentModelAndInterestGroupInfo(incident,
-                                                                                         owningCore,
-                                                                                         status.getProduct().getProductID());
+                    owningCore, status.getProduct().getProductID());
 
-                if ((owningCore != null) && directoryService.getCoreName().equals(owningCore) &&
-                    (igInfo != null)) {
+                if (owningCore != null && directoryService.getCoreName().equals(owningCore) &&
+                    igInfo != null)
                     // Only send notifications if it's an update by owning core
                     // create interest group for the incident
-                    sendIncidentStateChangeMessages(InterestGroupStateNotificationMessage.State.UPDATE,
-                                                    getIncidentDAO().findByIncidentID(getIncidentID(incident)),
-                                                    igInfo);
-                }
+                    sendIncidentStateChangeMessages(
+                        InterestGroupStateNotificationMessage.State.UPDATE,
+                        getIncidentDAO().findByIncidentID(getIncidentID(incident)), igInfo);
                 // make a performance log entry
                 final LogEntry logEntry = new LogEntry();
                 logEntry.setCategory(LogEntry.CATEGORY_INCIDENT);
@@ -1603,7 +1553,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             interestGroupManagementComponent.updateInterestGroup(igInfo);
         } catch (final InvalidInterestGroupIDException e) {
             logger.error("Caught InvalidInterestGroupIDException while attempting to update interestGroup with ID=" +
-                getIncidentID(incident));
+                         getIncidentID(incident));
             return null;
         }
         return igInfo;
@@ -1619,9 +1569,8 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             return status;
         }
 
-        if (getIncidentDAO().findByIncidentID(incidentID) == null) {
+        if (getIncidentDAO().findByIncidentID(incidentID) == null)
             return new ProductPublicationStatus("Incident: " + incidentID + " does not exist");
-        }
 
         // if the core is not the owning core then return failure
         if (getInterestGroupDAO().ownedByCore(incidentID, getDirectoryService().getLocalCoreJid()) == false) {
@@ -1629,7 +1578,7 @@ implements IncidentManagementService, PubSubNotificationService, ServiceNamespac
             final ProductPublicationStatus status = new ProductPublicationStatus();
             status.setStatus(ProductPublicationStatus.FailureStatus);
             status.setReasonForFailure(getDirectoryService().getCoreName() +
-                                       " doesn't own incident: " + incidentID);
+                " doesn't own incident: " + incidentID);
             return status;
         }
         return null;

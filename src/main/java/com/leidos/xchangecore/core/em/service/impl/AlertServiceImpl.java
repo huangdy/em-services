@@ -30,9 +30,10 @@ import com.saic.precis.x2009.x06.base.NamespaceMapType;
  * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class AlertServiceImpl implements AlertService, ServiceNamespaces {
+public class AlertServiceImpl
+implements AlertService, ServiceNamespaces {
 
-    Logger log = LoggerFactory.getLogger(AlertServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(AlertServiceImpl.class);
 
     private DirectoryService directoryService;
 
@@ -49,9 +50,9 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus cancelAlert(String workProductId) {
 
-        log.info("work product id to cancel: " + workProductId);
+        logger.info("work product id to cancel: " + workProductId);
 
-        WorkProduct wp = getWorkProductService().getProduct(workProductId);
+        final WorkProduct wp = getWorkProductService().getProduct(workProductId);
 
         ProductPublicationStatus status;
 
@@ -65,14 +66,13 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
             status = getWorkProductService().closeProduct(
-                    WorkProductHelper.getWorkProductIdentification(wp));
-            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
+                WorkProductHelper.getWorkProductIdentification(wp));
+            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus))
                 return status;
-            }
         }
 
         return getWorkProductService().archiveProduct(
-                WorkProductHelper.getWorkProductIdentification(wp));
+            WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     /**
@@ -96,65 +96,62 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
         // In references - one or more Cap Alerts are identified with the attributes
         // sender,identifier,sent for each Cap Alert separated by spaces
         //
-        AlertDocument alertDoc = AlertDocument.Factory.newInstance();
+        final AlertDocument alertDoc = AlertDocument.Factory.newInstance();
         alertDoc.setAlert(alert);
-        String msgType = alertDoc.getAlert().getMsgType().toString();
+        final String msgType = alertDoc.getAlert().getMsgType().toString();
 
         if (msgType.equalsIgnoreCase("Cancel")) {
             ProductPublicationStatus status = new ProductPublicationStatus();
 
-            log.info("New Alert is of type Cancel, ");
+            logger.info("New Alert is of type Cancel, ");
 
             // log.info("References Data: " + alertDoc.getAlert().getReferences());
 
             // get info from references and parse for Alert ID's
-            String references = alertDoc.getAlert().getReferences();
-            String prefix = "";
-            String[] alerts = references.substring(prefix.length()).split(" ");
-            String[] alertIDs = new String[alerts.length];
+            final String references = alertDoc.getAlert().getReferences();
+            final String prefix = "";
+            final String[] alerts = references.substring(prefix.length()).split(" ");
+            final String[] alertIDs = new String[alerts.length];
 
             for (int i = 0; i < alerts.length; i++) {
-                log.info("Alert Record: " + alerts[i]);
-                String[] eachAlert = alerts[i].split(",");
-                for (int j = 0; j < eachAlert.length; j++) {
+                logger.info("Alert Record: " + alerts[i]);
+                final String[] eachAlert = alerts[i].split(",");
+                for (int j = 0; j < eachAlert.length; j++)
                     if (j == 1) { // second item
-                        log.info("Alert ID: " + eachAlert[j]);
+                        logger.info("Alert ID: " + eachAlert[j]);
                         alertIDs[i] = eachAlert[j];
                     }
-                }
 
             }
 
             // use the alert ids to cancel each alert
-            log.info("looping to cancel each alert id");
-            for (String z : alertIDs) {
-                String wpIdentifier = z;
-                WorkProduct wp = getAlertByAlertId(wpIdentifier);
+            logger.info("looping to cancel each alert id");
+            for (final String z : alertIDs) {
+                final String wpIdentifier = z;
+                final WorkProduct wp = getAlertByAlertId(wpIdentifier);
                 if (wp != null) {
-                    log.info("calling cancel alert for: ");
-                    log.info("wp ID: " + wp.getProductID());
+                    logger.info("calling cancel alert for: ");
+                    logger.info("wp ID: " + wp.getProductID());
                     status = cancelAlert(wp.getProductID());
-                    log.info("Status: " + status.getStatus());
+                    logger.info("Status: " + status.getStatus());
 
-                } else {
-                    log.info("Alert: " + wpIdentifier + " not found on core to delete");
-                }
+                } else
+                    logger.info("Alert: " + wpIdentifier + " not found on core to delete");
             }
             return status;
         }
 
-        WorkProduct wp = new WorkProduct();
+        final WorkProduct wp = new WorkProduct();
         wp.setProductType(AlertService.Type);
         wp.setProduct(alertDoc);
 
-        if (incidentId != null) {
+        if (incidentId != null)
             wp.associateInterestGroup(incidentId);
-        }
 
         // get digest byte array
         wp.setDigest(new EMDigestHelper(alert).getDigest());
 
-        ProductPublicationStatus status = workProductService.publishProduct(wp);
+        final ProductPublicationStatus status = workProductService.publishProduct(wp);
 
         return status;
 
@@ -162,20 +159,17 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
 
     private WorkProduct findAlertWP(String alertID) {
 
-        List<WorkProduct> productList = getWorkProductService()
-                .listByProductType(AlertService.Type);
-        for (WorkProduct product : productList) {
+        final List<WorkProduct> productList = getWorkProductService().listByProductType(
+            AlertService.Type);
+        for (final WorkProduct product : productList)
             try {
-                AlertDocument alertDocument = (AlertDocument) product.getProduct();
+                final AlertDocument alertDocument = (AlertDocument) product.getProduct();
 
-                if (alertDocument.getAlert().getIdentifier().equals(alertID)) {
+                if (alertDocument.getAlert().getIdentifier().equals(alertID))
                     return product;
-                }
-            } catch (Exception e) {
-                log.error("Not Valid Alert Document:\n" + product.getProduct().xmlText());
+            } catch (final Exception e) {
+                logger.error("Not Valid Alert Document:\n" + product.getProduct().xmlText());
             }
-
-        }
         return null;
     }
 
@@ -224,27 +218,23 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
      */
     @Override
     public WorkProduct[] getListOfAlerts(String queryType, NamespaceMapType namespaceMap)
-            throws InvalidXpathException {
+        throws InvalidXpathException {
 
-        Map<String, String> mapNamespaces = new HashMap<String, String>();
-        if (namespaceMap != null) {
-            for (NamespaceMapItemType ns : namespaceMap.getItemArray()) {
+        final Map<String, String> mapNamespaces = new HashMap<String, String>();
+        if (namespaceMap != null)
+            for (final NamespaceMapItemType ns : namespaceMap.getItemArray())
                 mapNamespaces.put(ns.getPrefix(), ns.getURI());
-            }
-
-        }
 
         /*
          * Get a list of WP by Type from Work Product and use that list to match the alertID
          */
-        List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(
-                AlertService.Type, queryType, mapNamespaces);
+        final List<WorkProduct> listOfProducts = getWorkProductService().getProductByTypeAndXQuery(
+            AlertService.Type, queryType, mapNamespaces);
         if (listOfProducts != null && listOfProducts.size() > 0) {
-            WorkProduct[] products = new WorkProduct[listOfProducts.size()];
+            final WorkProduct[] products = new WorkProduct[listOfProducts.size()];
             return listOfProducts.toArray(products);
-        } else {
+        } else
             return null;
-        }
     }
 
     public WorkProductService getWorkProductService() {
@@ -271,9 +261,11 @@ public class AlertServiceImpl implements AlertService, ServiceNamespaces {
     @Override
     public void systemInitializedHandler(String message) {
 
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(AlertService.Type);
         directoryService.registerUICDSService(NS_AgreementService, ALERT_SERVICE_NAME, typeList,
-                typeList);
+            typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 }

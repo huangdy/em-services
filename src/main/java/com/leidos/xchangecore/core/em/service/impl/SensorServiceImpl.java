@@ -29,7 +29,8 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class SensorServiceImpl implements SensorService, ServiceNamespaces {
+public class SensorServiceImpl
+implements SensorService, ServiceNamespaces {
 
     Logger logger = LoggerFactory.getLogger(SensorServiceImpl.class);
 
@@ -57,14 +58,14 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
         // logger.error("createSOI incidentID:\n" + incidentID);
         // logger.error("createSOI SensorObservationInfo:\n" + soi.toString());
 
-        WorkProduct wp = new WorkProduct();
+        final WorkProduct wp = new WorkProduct();
         if (incidentID != null) {
             logger.debug(" incidentID=" + incidentID);
             wp.associateInterestGroup(incidentID);
         }
         wp.setProductType(SensorService.Type);
 
-        SensorObservationInfoDocument soiDoc = SensorObservationInfoDocument.Factory.newInstance();
+        final SensorObservationInfoDocument soiDoc = SensorObservationInfoDocument.Factory.newInstance();
         soiDoc.addNewSensorObservationInfo().set(soi);
 
         // logger.error("SensorObservationInfoDocument:\n" + soiDoc.toString());
@@ -72,11 +73,10 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
         // Create the digest using XSLT
         // if (xsltFilePath == null)
         xsltFilePath = "xslt/SOIDigest.xsl";
-        if (iconConfigXmlFilePath == null) {
+        if (iconConfigXmlFilePath == null)
             iconConfigXmlFilePath = "xml/types_icons.xml";
-        }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-        DigestDocument digestDoc = digestGenerator.createDigest(soiDoc);
+        final DigestDocument digestDoc = digestGenerator.createDigest(soiDoc);
 
         wp.setProduct(soiDoc);
 
@@ -85,7 +85,7 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
 
         // System.out.println("createSOI: wp's product=[" + wp.getProduct() + "]");
 
-        ProductPublicationStatus status = workProductService.publishProduct(wp);
+        final ProductPublicationStatus status = workProductService.publishProduct(wp);
 
         return status;
     }
@@ -102,7 +102,7 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus deleteSOI(String productID) {
 
-        WorkProduct wp = workProductService.getProduct(productID);
+        final WorkProduct wp = workProductService.getProduct(productID);
 
         ProductPublicationStatus status;
 
@@ -116,14 +116,13 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
             status = getWorkProductService().closeProduct(
-                    WorkProductHelper.getWorkProductIdentification(wp));
-            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
+                WorkProductHelper.getWorkProductIdentification(wp));
+            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus))
                 return status;
-            }
         }
 
         return getWorkProductService().archiveProduct(
-                WorkProductHelper.getWorkProductIdentification(wp));
+            WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     public DirectoryService getDirectoryService() {
@@ -151,7 +150,7 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
     @Override
     public WorkProduct getSOI(String productID) {
 
-        WorkProduct product = workProductService.getProduct(productID);
+        final WorkProduct product = workProductService.getProduct(productID);
         return product;
     }
 
@@ -167,16 +166,13 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
     @Override
     public WorkProduct[] getSOIList(String incidentID) {
 
-        List<WorkProduct> productList = workProductService.listByProductType(SensorService.Type);
-        List<WorkProduct> associatedProducts = new ArrayList<WorkProduct>();
-        if (productList != null) {
-            for (WorkProduct product : productList) {
-                if (product.getFirstAssociatedInterestGroupID().equals(incidentID)) {
+        final List<WorkProduct> productList = workProductService.listByProductType(SensorService.Type);
+        final List<WorkProduct> associatedProducts = new ArrayList<WorkProduct>();
+        if (productList != null)
+            for (final WorkProduct product : productList)
+                if (product.getFirstAssociatedInterestGroupID().equals(incidentID))
                     associatedProducts.add(product);
-                }
-            }
-        }
-        WorkProduct[] products = new WorkProduct[associatedProducts.size()];
+        final WorkProduct[] products = new WorkProduct[associatedProducts.size()];
         return associatedProducts.toArray(products);
     }
 
@@ -225,10 +221,12 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
     @Override
     public void systemInitializedHandler(String messgae) {
 
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(SensorService.Type);
         directoryService.registerUICDSService(NS_SensorService, SENSOR_SERVICE_NAME, typeList,
-                typeList);
+            typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
     /**
@@ -246,12 +244,12 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus updateSOI(SensorObservationInfo soi, IdentificationType pkgId) {
 
-        String productID = pkgId.getIdentifier().getStringValue();
+        final String productID = pkgId.getIdentifier().getStringValue();
         logger.debug("updateSOI: " + soi.toString() + " productID=" + productID);
 
         WorkProduct wp = workProductService.getProduct(productID);
 
-        SensorObservationInfoDocument soiDoc = SensorObservationInfoDocument.Factory.newInstance();
+        final SensorObservationInfoDocument soiDoc = SensorObservationInfoDocument.Factory.newInstance();
         soiDoc.addNewSensorObservationInfo().set(soi);
         wp.setProduct(soiDoc);
 
@@ -262,16 +260,15 @@ public class SensorServiceImpl implements SensorService, ServiceNamespaces {
         // Create the digest using XSLT
         // if (xsltFilePath == null)
         xsltFilePath = "xslt/SOIDigest.xsl";
-        if (iconConfigXmlFilePath == null) {
+        if (iconConfigXmlFilePath == null)
             iconConfigXmlFilePath = "xml/types_icons.xml";
-        }
         digestGenerator = new DigestGenerator(xsltFilePath, iconConfigXmlFilePath);
-        DigestDocument digestDoc = digestGenerator.createDigest(soiDoc);
+        final DigestDocument digestDoc = digestGenerator.createDigest(soiDoc);
 
         wp.setDigest(digestDoc);
         // newWP.setDigest(new EMDigestHelper(soi).getDigest());
 
-        ProductPublicationStatus status = workProductService.publishProduct(wp);
+        final ProductPublicationStatus status = workProductService.publishProduct(wp);
 
         return status;
     }

@@ -27,12 +27,12 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * @see com.leidos.xchangecore.core.infrastructure.model.WorkProduct WorkProduct Data Model
  * @ssdd
  */
-public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
+public class TaskingServiceImpl
+    implements TaskingService, ServiceNamespaces {
 
-    Logger log = LoggerFactory.getLogger(TaskingServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(TaskingServiceImpl.class);
 
     private WorkProductService workProductService;
-
     private DirectoryService directoryService;
 
     /**
@@ -48,32 +48,31 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
      * @ssdd
      */
     @Override
-    public ProductPublicationStatus createTaskList(String entityId, String incidentId,
-            TaskListType taskList) {
+    public ProductPublicationStatus createTaskList(String entityId,
+                                                   String incidentId,
+                                                   TaskListType taskList) {
 
-        log.debug("createTaskList");
+        logger.debug("createTaskList");
 
-        if (taskList.getEntityId() == null) {
+        if (taskList.getEntityId() == null)
             taskList.setEntityId(entityId);
-        }
-        log.debug("taskList.toString=" + taskList.toString());
+        logger.debug("taskList.toString=" + taskList.toString());
 
-        TaskListDocument taskListDocument = TaskListDocument.Factory.newInstance();
+        final TaskListDocument taskListDocument = TaskListDocument.Factory.newInstance();
         taskListDocument.setTaskList(taskList);
 
-        WorkProduct product = new WorkProduct();
+        final WorkProduct product = new WorkProduct();
         product.setProductType(TaskingService.TASKING_PRODUCT_TYPE);
         product.setCreatedDate(new Date());
         product.setProduct(taskListDocument);
 
-        if (incidentId != null) {
+        if (incidentId != null)
             product.associateInterestGroup(incidentId);
-        }
 
-        log.debug("product=" + taskList.toString());
-        ProductPublicationStatus status = workProductService.publishProduct(product);
+        logger.debug("product=" + taskList.toString());
+        final ProductPublicationStatus status = workProductService.publishProduct(product);
 
-        log.debug("createTaskList DONE");
+        logger.debug("createTaskList DONE");
         return status;
     }
 
@@ -88,8 +87,8 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
     @Override
     public ProductPublicationStatus deleteTaskList(String wpId) {
 
-        log.debug("deleteTaskList");
-        WorkProduct wp = workProductService.getProduct(wpId);
+        logger.debug("deleteTaskList");
+        final WorkProduct wp = workProductService.getProduct(wpId);
 
         ProductPublicationStatus status;
 
@@ -103,14 +102,13 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
         // if it's still not closed, we need to close it first
         if (wp.isActive() == true) {
             status = getWorkProductService().closeProduct(
-                    WorkProductHelper.getWorkProductIdentification(wp));
-            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus)) {
+                WorkProductHelper.getWorkProductIdentification(wp));
+            if (status.getStatus().equals(ProductPublicationStatus.FailureStatus))
                 return status;
-            }
         }
 
         return getWorkProductService().archiveProduct(
-                WorkProductHelper.getWorkProductIdentification(wp));
+            WorkProductHelper.getWorkProductIdentification(wp));
     }
 
     /** {@inheritDoc} */
@@ -147,25 +145,25 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
     @Override
     public WorkProduct getTaskListByEntityIdAndIncidentId(String entityId, String incidentId) {
 
-        log.debug("getTaskList");
+        logger.debug("getTaskList");
 
         TaskListDocument taskListDocument = null;
         TaskListType taskList = null;
 
         // GetByType and IncidentID
-        List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
-                TaskingService.TASKING_PRODUCT_TYPE);
-        for (WorkProduct wp : wpList) {
+        final List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
+            TaskingService.TASKING_PRODUCT_TYPE);
+        for (final WorkProduct wp : wpList) {
             try {
                 taskListDocument = (TaskListDocument) wp.getProduct();
                 taskList = taskListDocument.getTaskList();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
                 return null;
             }
 
             if (taskList != null && taskList.getEntityId().equals(entityId)) {
-                log.debug("getTaskList taskList.toString:\n" + taskList.toString());
+                logger.debug("getTaskList taskList.toString:\n" + taskList.toString());
                 return wp;
             }
         }
@@ -188,23 +186,22 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
         TaskListType taskList = null;
 
         // GetByType and IncidentID
-        List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
-                TaskingService.TASKING_PRODUCT_TYPE);
-        for (WorkProduct wp : wpList) {
+        final List<WorkProduct> wpList = workProductService.findByInterestGroupAndType(incidentId,
+            TaskingService.TASKING_PRODUCT_TYPE);
+        for (final WorkProduct wp : wpList) {
             try {
                 taskListDocument = (TaskListDocument) wp.getProduct();
                 taskList = taskListDocument.getTaskList();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
                 return null;
             }
 
-            if (taskList != null && entityId != null) {
+            if (taskList != null && entityId != null)
                 if (taskList.getEntityId().equals(entityId)) {
-                    log.debug("getTaskList taskList.toString:\n" + taskList.toString());
+                    logger.debug("getTaskList taskList.toString:\n" + taskList.toString());
                     return wp;
                 }
-            }
         }
         return null;
 
@@ -239,10 +236,12 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
     @Override
     public void systemInitializedHandler(String messgae) {
 
-        WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
+        logger.debug("systemInitializedHandler: ... start ...");
+        final WorkProductTypeListType typeList = WorkProductTypeListType.Factory.newInstance();
         typeList.addProductType(TASKING_PRODUCT_TYPE);
         directoryService.registerUICDSService(NS_TaskingService, TASKING_SERVICE_NAME, typeList,
-                typeList);
+            typeList);
+        logger.debug("systemInitializedHandler: ... done ...");
     }
 
     /**
@@ -257,17 +256,16 @@ public class TaskingServiceImpl implements TaskingService, ServiceNamespaces {
      */
     @Override
     public ProductPublicationStatus updateTaskList(TaskListType taskList,
-            IdentificationType workProductIdentification) {
+                                                   IdentificationType workProductIdentification) {
 
-        WorkProduct wp = workProductService.getProduct(workProductIdentification.getIdentifier()
-                .getStringValue());
+        WorkProduct wp = workProductService.getProduct(workProductIdentification.getIdentifier().getStringValue());
 
-        TaskListDocument taskListDoc = TaskListDocument.Factory.newInstance();
+        final TaskListDocument taskListDoc = TaskListDocument.Factory.newInstance();
         taskListDoc.addNewTaskList().set(taskList);
         wp.setProduct(taskListDoc);
         wp = WorkProductHelper.setWorkProductIdentification(wp, workProductIdentification);
 
-        ProductPublicationStatus status = workProductService.publishProduct(wp);
+        final ProductPublicationStatus status = workProductService.publishProduct(wp);
 
         return status;
     }
