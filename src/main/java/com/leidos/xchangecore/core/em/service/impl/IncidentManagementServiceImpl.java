@@ -579,18 +579,21 @@ public class IncidentManagementServiceImpl
         getUserInterestGroupDAO().addUser(creator, IGID);
 
         // Add xchangecore-admins memebers to whitelist regardless
-        logger.debug("gernerateUserInterestGroupList: adding all members from admin groups");
         final List<String> adminMembers = getLdapUtil().getGroupMembersForAdmins();
         for (final String adminMember : adminMembers) {
+            logger.debug("gernerateUserInterestGroupList: adding " + adminMember +
+                " from admin groups for IGID: " + IGID);
             getUserInterestGroupDAO().addUser(adminMember, IGID);
         }
 
         final List<Agreement> agreementList = getAgreementDAO().findAll();
         for (final Agreement agreement : agreementList) {
+            logger.debug("gernerateUserInterestGroupList: Matching Agreement ID: " +
+                         agreement.getId());
             if (!agreement.isIntraCoreAgreement()) {
                 logger.debug("generateUserInterestGroupList: inter-core: localCoreJID: " +
-                             agreement.getLocalCorename() + " with remoteCoreJID: " +
-                             agreement.getRemoteCorename() + " ... skip ...");
+                    agreement.getLocalCorename() + " with remoteCoreJID: " +
+                    agreement.getRemoteCorename() + " ... skip ...");
 
                 continue;
             }
@@ -601,13 +604,15 @@ public class IncidentManagementServiceImpl
 
             // if the from part is empty which means no ID nor group specified
             if (agreement.getLocalJIDs().isEmpty() && agreement.getLocalGroups().isEmpty()) {
-                logger.debug("generateUserInterestGroupList: from part is all");
+                logger.debug("generateUserInterestGroupList: share because from part is all.");
                 doShare = true;
             }
 
             // if the list of ID contains the creator, then share
             if (!doShare && !agreement.getLocalJIDs().isEmpty() &&
                 agreement.getLocalJIDs().contains(creator)) {
+                logger.debug("generateUserInterestGroupList: share because fromJIDs contains " +
+                    creator);
                 doShare = true;
             }
 
@@ -616,6 +621,8 @@ public class IncidentManagementServiceImpl
                 final Set<String> groups = agreement.getLocalGroups();
                 for (final String group : groups) {
                     if (getLdapUtil().groupContainsMember(group, creator)) {
+                        logger.debug("generateUserInterestGroupList: share because fromGroups: " +
+                            group + " contains " + creator);
                         doShare = true;
                         break;
                     }
@@ -623,30 +630,51 @@ public class IncidentManagementServiceImpl
             }
 
             if (doShare) {
-                logger.debug("generateUserInterestGroupList: the creator: " + creator +
-                             " is one of the local group/user");
 
                 if (agreement.getRemoteJIDs().isEmpty() && agreement.getRemoteGroups().isEmpty()) {
                     logger.debug("generateUserInterestGroupList: to part is all");
-                    final List<String> members = getLdapUtil().listOfMembers();
-                    for (final String member : members) {
-                        getUserInterestGroupDAO().addUser(member, IGID);
+                    if (AgreementMatcher.isRuleMatchedIgnoreProximity(null,
+                        agreement.getShareRules(), incidentDoc, true)) {
+
+                        final List<String> members = getLdapUtil().listOfMembers();
+                        for (final String member : members) {
+                            logger.debug("generateUserInterestGroupList: adding " + member +
+                                " as one of the member on the core for IGID: " + IGID);
+                            getUserInterestGroupDAO().addUser(member, IGID);
+                        }
+                    }
+                    continue;
+                }
+
+                if (agreement.getRemoteJIDs().isEmpty() == false) {
+
+                    if (AgreementMatcher.isRuleMatchedIgnoreProximity(null,
+                        agreement.getShareRules(), incidentDoc, true)) {
+
+                        final Set<String> users = agreement.getRemoteJIDs();
+                        for (final String user : users) {
+                            logger.debug("generateUserInterestGroupList: adding " + user +
+                                " as one of the remoteJIDs for IGID: " + IGID);
+                            getUserInterestGroupDAO().addUser(user, IGID);
+                        }
                     }
                 }
-                final Set<String> users = agreement.getRemoteJIDs();
-                for (final String user : users) {
-                    getUserInterestGroupDAO().addUser(user, IGID);
-                }
-                final Set<String> groups = agreement.getRemoteGroups();
-                for (final String group : groups) {
-                    // check all the rules
-                    String[] points = new String[2];
-                    points = getLdapUtil().getCNLocation(group);
-                    logger.debug("Checking Agreement Matcher for group: " + group);
-                    if (AgreementMatcher.isMatch(points, agreement.getShareRules(), incidentDoc)) {
-                        final List<String> members = getLdapUtil().getGroupMembers(group);
-                        for (final String member : members) {
-                            getUserInterestGroupDAO().addUser(member, IGID);
+
+                if (agreement.getRemoteGroups().isEmpty() == false) {
+                    final Set<String> groups = agreement.getRemoteGroups();
+                    for (final String group : groups) {
+                        // check all the rules
+                        String[] points = new String[2];
+                        points = getLdapUtil().getCNLocation(group);
+                        logger.debug("Checking Agreement Matcher for group: " + group);
+                        if (AgreementMatcher.isRuleMatched(points, agreement.getShareRules(),
+                            incidentDoc)) {
+                            final List<String> members = getLdapUtil().getGroupMembers(group);
+                            for (final String member : members) {
+                                logger.debug("generateUserInterestGroupList: adding " + member +
+                                    " as one of the remoteGroups for IGID: " + IGID);
+                                getUserInterestGroupDAO().addUser(member, IGID);
+                            }
                         }
                     }
                 }
