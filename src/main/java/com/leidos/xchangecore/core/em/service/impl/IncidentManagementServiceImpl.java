@@ -636,7 +636,7 @@ public class IncidentManagementServiceImpl
                     if (AgreementMatcher.isRuleMatchedIgnoreProximity(null,
                         agreement.getShareRules(), incidentDoc, true)) {
 
-                        final List<String> members = getLdapUtil().listOfMembers();
+                        final List<String> members = getLdapUtil().listOfUsers();
                         for (final String member : members) {
                             logger.debug("generateUserInterestGroupList: adding " + member +
                                 " as one of the member on the core for IGID: " + IGID);
