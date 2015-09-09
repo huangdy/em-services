@@ -42,8 +42,8 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
 import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
- * The Incident Action Plan (IAP) Service allows UICDS compatible clients to manage an IAP and the
- * related ICS form work products that are associated with a UICDS incident. It includes services
+ * The Incident Action Plan (IAP) Service allows XchangeCore compatible clients to manage an IAP and the
+ * related ICS form work products that are associated with a XchangeCore incident. It includes services
  * to:
  * <ul>
  * <li>create, update, or retrieve an IAP
@@ -58,7 +58,7 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * Work products associated to an IAP as Components can be any work product the client wishes to be
  * part of the Incident Action Plan for example maps, image files, ICS, etc. Most of the time the
  * associated work product will be ICS Forms that are represented by XML documents defined as part
- * of this service. Components of the IAP may also have a UICDS task associated with them that
+ * of this service. Components of the IAP may also have a XchangeCore task associated with them that
  * represents a task to complete the work product. Each component also has a status that can be a
  * string value. Currently the IAP Service defines XML schemas for the following ICS forms:
  * <ul>
@@ -354,8 +354,8 @@ public class IAPServiceEndpoint
     }
 
     /**
-     * Associate any UICDS Work Product to an IAP work product. This could be an ICS form that was
-     * created with this service, a work product created with other UICDS work product services, or
+     * Associate any XchangeCore Work Product to an IAP work product. This could be an ICS form that was
+     * created with this service, a work product created with other XchangeCore work product services, or
      * a work product that was created through the Work Product Service.
      * 
      * @param AttachICSFormToIAPRquestDocument

@@ -21,7 +21,7 @@ import com.leidos.xchangecore.core.infrastructure.exceptions.NoShareRuleInAgreem
 import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
 
 /**
- * The Broadcast Service provides a mechanism to send messages to a set of selected UICDS resource
+ * The Broadcast Service provides a mechanism to send messages to a set of selected XchangeCore resource
  * instances or XMPP users. The message is represented as an EDXL-DE message and as such can contain
  * any content allowed by the EDXL-DE specification.
  * <p/>
@@ -41,8 +41,8 @@ import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
  * and delivered. The response will contain an error message indicating if the message could not be
  * sent to one or more destination resource instances.
  * <p/>
- * The address scheme for the explictAddress for UICDS resources instances is "uicds:user" and the
- * address value is the UICDS identifier of a resource instance. An example of an explicitAddress
+ * The address scheme for the explictAddress for XchangeCore resources instances is "uicds:user" and the
+ * address value is the XchangeCore identifier of a resource instance. An example of an explicitAddress
  * element is:
  * 
  * <pre>
@@ -87,10 +87,10 @@ public class BroadcastServiceEndpoint
     }
 
     /**
-     * Allows the client to broadcast a message to UICDS resource instances and XMPP JIDs. The
+     * Allows the client to broadcast a message to XchangeCore resource instances and XMPP JIDs. The
      * target of the message can be either:
      * <ul>
-     * <li>A particular UICDS resource instance by specifying their resource instance id in an
+     * <li>A particular XchangeCore resource instance by specifying their resource instance id in an
      * explictAddress element</li>
      * <li>A particular XMPP user by specifying their JID in an explicitAddress element</li>
      * </ul>

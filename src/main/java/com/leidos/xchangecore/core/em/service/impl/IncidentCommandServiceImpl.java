@@ -113,17 +113,7 @@ public class IncidentCommandServiceImpl
             IncidentCommanderRole) ? ICSType : MACSType;
     }
 
-    /*
-     * private ProfileService profileService;
-     *
-     * public void setProfileService(ProfileService profileService) {
-     *
-     * this.profileService = profileService; }
-     *
-     * public ProfileService getProfileService() {
-     *
-     * return this.profileService; }
-     */
+    
     public void setDirectoryService(DirectoryService directoryService) {
 
         this.directoryService = directoryService;

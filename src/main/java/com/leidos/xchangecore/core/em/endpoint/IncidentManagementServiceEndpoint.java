@@ -49,14 +49,14 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
 import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
- * The Incident Management Service allows clients to manage UICDS incidents. It
+ * The Incident Management Service allows clients to manage XchangeCore incidents. It
  * includes services to:
  * <ul>
  * <li>create an incident from a UICDSIncidentType</li>
  * <li>create an incident from a CAP version 1.1 alert document</li>
  * <li>get the incident document (UICDSIncidentType)</li>
  * <li>update information about an incident</li>
- * <li>share the incident with other UICDS cores</li>
+ * <li>share the incident with other XchangeCore cores</li>
  * <li>close an incident</li>
  * <li>archive an incident</li>
  * </ul>
@@ -67,9 +67,9 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * <!-- NEWPAGE -->
  * <p>
  * The UICDSIncidentType is derived from the NIEM IncidentType and extended with
- * elements to represent UICDS specific items which are essentially read-only
+ * elements to represent XchangeCore specific items which are essentially read-only
  * for clients. The following elements are the only elements in the NIEM
- * IncidentType that UICDS needs to have values for. All other elements in this
+ * IncidentType that XchangeCore needs to have values for. All other elements in this
  * structure can be used in accordance with NIEM as needed by the clients.
  * <ul>
  * <li>ActivityCategoryText</li>
@@ -305,7 +305,7 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * </table>
  * 
  * <p>
- * The Incident Management Service manages UICDS work products of type
+ * The Incident Management Service manages XchangeCore work products of type
  * "Incident". <BR>
  * 
  * <p>

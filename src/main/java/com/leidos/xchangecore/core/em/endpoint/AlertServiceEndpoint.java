@@ -41,7 +41,7 @@ import x1.oasisNamesTcEmergencyCap1.AlertDocument;
 import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
- * The Alert service allows UICDS compatible clients to create, cancel and get CAP alert work
+ * The Alert service allows XchangeCore compatible clients to create, cancel and get CAP alert work
  * products that conform to the CAP version 1.1 specification. Alerts may or may not be associated
  * with a particular incident using the optional incidentId parameter. Submitted alerts are not
  * validated against a particular CAP profile. A representation of the create request is shown in
@@ -49,7 +49,7 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * <p>
  * <img src="doc-files/alertType.png"/> <BR>
  * <p>
- * The Alert Service manages alerts as UICDS work products of type "Alert". <BR>
+ * The Alert Service manages alerts as XchangeCore work products of type "Alert". <BR>
  * <p>
  * 
  * @author Daphne Hurrell
@@ -148,7 +148,7 @@ public class AlertServiceEndpoint
     }
 
     /**
-     * Allows the client to get an alert work product using the UICDS Work Product Identification.
+     * Allows the client to get an alert work product using the XchangeCore Work Product Identification.
      * 
      * @see <a href="../../services/Alert/0.1/AlertService.xsd">Appendix: AlertService.xsd</a>
      * 

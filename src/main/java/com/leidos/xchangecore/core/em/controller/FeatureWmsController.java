@@ -250,7 +250,7 @@ public class FeatureWmsController
         int imageType = transparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
         image = new BufferedImage(width, height, imageType);
         if ("gif".equals(format)) {
-            // clear the backgroun with transparent black.
+            // clear the background with transparent black.
             Graphics2D graphics = (Graphics2D) image.getGraphics();
             graphics.setBackground(BACKGROUND_COLOR);
             graphics.clearRect(0, 0, width, height);

@@ -32,11 +32,11 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * 
  * The Tasking Service allows a client to create, update, query and delete a list of tasks for a
  * resource. The resource to be tasked must be represented by an identifier of a resource instance.
- * Each resource instance in the UICDS system can have a list of tasks for a given incident as a
+ * Each resource instance in the XchangeCore system can have a list of tasks for a given incident as a
  * work product associated with the incident. Task lists are managed as a whole. There are service
  * end points for the basic creation, retrieval, update and deletion of task lists.
  * 
- * A UICDS TaskList contains the following information:
+ * A XchangeCore TaskList contains the following information:
  * <ul>
  * <li>entityId - the resource instance identifier the task list is assigned to
  * <li>task list - a list of tasks containing
@@ -56,7 +56,7 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * <img src="doc-files/TaskType.png"/>
  * <p>
  * <p>
- * The Tasking Service manages UICDS work products of type "Tasking". <BR>
+ * The Tasking Service manages XchangeCore work products of type "Tasking". <BR>
  * <p>
  * <!-- NEWPAGE -->
  * <p>

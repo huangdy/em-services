@@ -21,14 +21,14 @@ import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
 import com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct;
 
 /**
- * The UICDS LEITSC Service allows clients to create, update, close, and archive
- * UICDS incidents based on LEITSC Detailed Call For Service messages.
+ * The XchangeCore LEITSC Service allows clients to create, update, close, and archive
+ * XchangeCore incidents based on LEITSC Detailed Call For Service messages.
  * <p>
  * The actions to apply are based on the Detailed Call For Service 
  * Payload/ServiceCall/ActivityStatus value.
- * The following table shows how this value is interpreted by UICDS:
+ * The following table shows how this value is interpreted by XchangeCore:
  * <table>
- * <thead><tr><td width="30%"><b>Value</b></td><td width="70%"><b>UICDS Action</b></td></thead>
+ * <thead><tr><td width="30%"><b>Value</b></td><td width="70%"><b>XchangeCore Action</b></td></thead>
  * <tbody>
  * <tr><td width="30%">CREATED</td><td width="70%">Create a new incident</td></tr>
  * <tr><td width="30%">CLEARED</td><td width="70%">Close and archive the incident</td></tr>
@@ -75,7 +75,7 @@ public class LEITSCServiceEndpoint
     private static final String xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
     /**
-     * Posts a Detailed CFS message to the UICDS core. A UICDS incident will be
+     * Posts a Detailed CFS message to the XchangeCore core. A XchangeCore incident will be
      * created, updated, or closed/archived, based on the message's activity
      * status.
      * 

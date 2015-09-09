@@ -29,22 +29,22 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
 
 /**
  * 
- * The UICDS Sensor Service allows clients to manage Open Geospatial Consortium
+ * The XchangeCore Sensor Service allows clients to manage Open Geospatial Consortium
  * Sensor Observation Specification (OGC-SOS) GetObservation and Observation
  * work products. Observations or measurements made by these sensors are used to
  * support incident related activities. The discovery process to identify
- * sensors that are relevant to a particular UICDS incident involves
- * interactions between UICDS clients and the sensor systems directly at several
+ * sensors that are relevant to a particular XchangeCore incident involves
+ * interactions between XchangeCore clients and the sensor systems directly at several
  * SOS levels. To reduce the need to repeat these steps, the information
  * required to retrieve sensor observations, and optionally an observation
- * itself, is stored as UICDS work products that are associated with the
- * incident. UICDS clients who are interested in retrieving the sensor
+ * itself, is stored as XchangeCore work products that are associated with the
+ * incident. XchangeCore clients who are interested in retrieving the sensor
  * observations request these work products either from the Sensor Service or
  * the Work Product Service. The GetObservation element included in the work
  * product can be used to request observations directly from the sensor system
  * via the SOS interface in a more real-time manner.
  * <p>
- * The UICDS Sensor Service provides the ability for UICDS users to:
+ * The XchangeCore Sensor Service provides the ability for XchangeCore users to:
  * <ul>
  * <li>create an Sensor Observation Information (SOI) work product
  * <li>delete an SOI work product
@@ -113,7 +113,7 @@ import com.saic.precis.x2009.x06.base.IdentificationType;
  * </tr>
  * </table>
  * <p>
- * The Sensor Service manages UICDS work products of type "SOI". <BR>
+ * The Sensor Service manages XchangeCore work products of type "SOI". <BR>
  * <p>
  * 
  * @author Aruna Hau

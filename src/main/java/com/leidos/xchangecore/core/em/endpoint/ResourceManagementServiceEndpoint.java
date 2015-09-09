@@ -35,11 +35,11 @@ import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
 import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
 
 /**
- * The Resource Management Service provides UICDS clients with services to exchange EDXL-RM messages
- * with other UICDS clients and send EDXL-RM messages to XMPP users. The clients can exchange any of
+ * The Resource Management Service provides XchangeCore clients with services to exchange EDXL-RM messages
+ * with other XchangeCore clients and send EDXL-RM messages to XMPP users. The clients can exchange any of
  * the EDXL-RM messages from any of the EDXL-RM messaging phases: Discovery, Ordering and
  * Deployment. It is up to the clients to implement the actions necessary to support these message
- * exchanges according to the EDXL-RM specification. The UICDS Resource Management Service merely
+ * exchanges according to the EDXL-RM specification. The XchangeCore Resource Management Service merely
  * routes these messages to explicitly targeted clients and delivers the message on the clients
  * notification queue or XMPP message queue while maintaining a minimal summary of the message
  * exchanges. The Resource Management service will maintain the following summary information about
@@ -48,9 +48,9 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * <li>Requested resources</li>
  * <li>Committed resources</li>
  * </ul>
- * A UICDS core will support the following:
+ * A XchangeCore core will support the following:
  * <ul>
- * <li>Routing any EDXL-RM message to specific UICDS clients based on the EDXL-DE Explicit Address
+ * <li>Routing any EDXL-RM message to specific XchangeCore clients based on the EDXL-DE Explicit Address
  * element(s). See use of explicit address usage in
  * {@link com.leidos.xchangecore.core.em.endpoint.BroadcastServiceEndpoint}</li>
  * <li>Routing any EDXL-RM message to specific XMPP JID based on the EDXL-DE Explicit Address
@@ -59,29 +59,29 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * <li>Restricting routing of EDXL-RM messages to only those cores that have valid agreements</li>
  * <li>Creating work products for RequestResource and CommitResource messages</li>
  * <ul>
- * <li>Other messages are not parsed or stored by the UICDS core</li>
+ * <li>Other messages are not parsed or stored by the XchangeCore core</li>
  * </ul>
  * <li>Providing a summary of requested and committed resources for an incident</li> </ul>
  * <p>
- * An example of the interaction of two UICDS clients, in this example two CAD systems, with an
- * UICDS core to support EDXL-RM messaging can be seen in the following sequence diagram. <br/>
+ * An example of the interaction of two XchangeCore clients, in this example two CAD systems, with an
+ * XchangeCore core to support EDXL-RM messaging can be seen in the following sequence diagram. <br/>
  * <img src="doc-files/rm_slide3.jpg"/> <br/>
  * <p>
  * <!-- NEWPAGE -->
  * <p>
- * The main points about working with the EDXL-RM schemas when interacting with UICDS are:
+ * The main points about working with the EDXL-RM schemas when interacting with XchangeCore are:
  * <ul>
  * <li>All elements required by the EDXL-RM specification must be represented</li>
- * <li>Where EDXL-RM allows a choice of required elements UICDS may specify a required or preferred
+ * <li>Where EDXL-RM allows a choice of required elements XchangeCore may specify a required or preferred
  * element</li>
- * <li>Where EDXL-RM allows multiple representations UICDS may designate a preferred representation</li>
- * <li>UICDS will not change any EDXL-RM message and will preserve all EDXL-RM message content (i.e.
+ * <li>Where EDXL-RM allows multiple representations XchangeCore may designate a preferred representation</li>
+ * <li>XchangeCore will not change any EDXL-RM message and will preserve all EDXL-RM message content (i.e.
  * optional elements)</li>
  * </ul>
  * <p>
- * Since UICDS only parses the Request and Commit Resource messages it only places requirements on
+ * Since XchangeCore only parses the Request and Commit Resource messages it only places requirements on
  * those messages. The following diagrams show details of data requirements for these two messages.
- * The full details of what data is required beyond that required for UICDS needs to be negotiated
+ * The full details of what data is required beyond that required for XchangeCore needs to be negotiated
  * between the systems that are exchanging EDXL-RM messages. <br/>
  * <img src="doc-files/rm_slide8.jpg"/> <br/>
  * <p>
@@ -101,9 +101,9 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * <p>
  * <!-- NEWPAGE -->
  * <p>
- * The Request and Commit Resource message are used within UICDS to create a work product and digest
+ * The Request and Commit Resource message are used within XchangeCore to create a work product and digest
  * so that these data can be searched and provided as outputs. The following diagrams show the
- * digests that are created for the Request and Commit Resource messages within UICDS. Full details
+ * digests that are created for the Request and Commit Resource messages within XchangeCore. Full details
  * of the mapping from the EDXL-RM message to the Digests fields can be found in the
  * CommitResourceDigest.xsl and RequestResourceDigest.xsl XSL Transformation files. The following
  * tables shows the default mappings.
@@ -254,8 +254,8 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * <p>
  * <!-- NEWPAGE -->
  * <p>
- * As stated in the EDXL-RM specification an EDXL-RM message posted to UICDS must be encapsulated in
- * an EDXL-DE message. Currently UICDS only routes EDXL-DE messages based on values in the explicit
+ * As stated in the EDXL-RM specification an EDXL-RM message posted to XchangeCore must be encapsulated in
+ * an EDXL-DE message. Currently XchangeCore only routes EDXL-DE messages based on values in the explicit
  * address element. The values in this element must have a type of uicds:user with a value of a
  * resource instance identifier.
  * 
@@ -268,7 +268,7 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * 
  * Note that the explicitAddressSchema should be set to "uicds:user" and the explicitAddressValue
  * set to the resource instance identifier that is listed in the agreements and is also the actual
- * identifier that RMApplication2 is using to get notification messages from UICDS. <br/>
+ * identifier that RMApplication2 is using to get notification messages from XchangeCore. <br/>
  * 
  * An example explicit address to send an EDXL-RM message to an XMPP user would be:
  *

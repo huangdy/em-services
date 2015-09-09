@@ -21,7 +21,7 @@ import com.leidos.xchangecore.core.infrastructure.util.ServiceNamespaces;
 import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
 
 /**
- * The UICDS Incident Command Service allows clients to create and modify command structures for
+ * The XchangeCore Incident Command Service allows clients to create and modify command structures for
  * incidents (including both ICS and MACS) and associate resources to organizational roles within
  * these structures.
  * <p>
@@ -30,8 +30,8 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
  * <p>
  * Organizational structures for an incident are represented by building up hierarchies of instances
  * of OrganizationalElements. Positions in the organizational structure are represented by an
- * OrganizationPositionType. Positions contain a reference to a UICDS Resource Profile (role) and a
- * UICDS Resource Instance (resource/person). The references should be the identifier of the
+ * OrganizationPositionType. Positions contain a reference to a XchangeCore Resource Profile (role) and a
+ * XchangeCore Resource Instance (resource/person). The references should be the identifier of the
  * resource profile or resource instance. Resource profiles are managed by the Resource Profile
  * Service and resource instances are managed by the Resource Instance Service.
  * 

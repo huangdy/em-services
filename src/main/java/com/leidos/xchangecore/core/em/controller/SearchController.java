@@ -30,7 +30,7 @@ import com.usersmarts.pub.atom.ATOM;
 import com.usersmarts.xmf2.MarshalContext;
 
 /**
- * The Search Service provides UICDS clients with services to discover and access work products
+ * The Search Service provides XchangeCore clients with services to discover and access work products
  * using OpenSearch enabled feeds.
  *
  * The Search Service accepts Google-style query strings via the q parameter. For instance:

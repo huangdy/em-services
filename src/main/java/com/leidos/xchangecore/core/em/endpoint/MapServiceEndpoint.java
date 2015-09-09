@@ -36,12 +36,12 @@ import com.leidos.xchangecore.core.infrastructure.util.WorkProductHelper;
 import com.usersmarts.util.DOMUtils;
 
 /**
- * The UICDS Map Service provides a means for interacting with an UICDS core to manage map related
+ * The XchangeCore Map Service provides a means for interacting with an XchangeCore core to manage map related
  * resources. The service defines Layer and Map resources and collections of these resources. This
  * model is based on the OGC Web Map Context specification. The operations consist of creating,
  * retrieving, updating, and deleting these resources. <BR>
  * <p>
- * The Map Service manages UICDS work products of type:
+ * The Map Service manages XchangeCore work products of type:
  * <ul>
  * <li>"MapViewContext" (OGC ViewContext)
  * <li>"LayerViewContext" (OGC Layer)
@@ -50,10 +50,10 @@ import com.usersmarts.util.DOMUtils;
  * An example MapViewContext work product is shown in the following example. This example shows the
  * default map that is created for each incident. It contains two layers, one is a base map (title:
  * Metacarta) and one is a WMS layer that contains location markers for each work product that is
- * submitted as a "Feature" type through the work product service (title: UICDS Core Map Service). A
+ * submitted as a "Feature" type through the work product service (title: XchangeCore Core Map Service). A
  * layer work product is just a single OGC Layer element.
  * <p>
- * EPSG 4326 is the recommended SRS for layers that are used withing UICDS. The UICDS core does not
+ * EPSG 4326 is the recommended SRS for layers that are used within XchangeCore. The XchangeCore core does not
  * access these layers so any type of Service or SRS that is valid for the OGC MapViewContext
  * specification can be added by clients. It is up to the clients that receive the MapViewContext
  * work products to be able to interpret and render the maps and layers.
